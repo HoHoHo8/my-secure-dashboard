@@ -2,40 +2,36 @@ name: Secure Auto Scraper Workflow
 
 on:
   schedule:
-    - cron: '0 0 * * *' # 每天 UTC 00:00 (香港時間 08:00) 自動執行
-  workflow_dispatch: # 支援手動按下按鈕測試執行
+    - cron: '0 0 * * *'  # 每日定時執行
+  workflow_dispatch:     # ⚠️ 必須有這行，GitHub 才會顯示 Run workflow 按鈕！
+
+permissions:
+  contents: write
 
 jobs:
-  crawl-and-deploy:
+  build-and-run:
     runs-on: ubuntu-latest
-
-    # 🔒 SECURITY CHECKPOINT: 嚴格控制機器人權限，僅給予寫入代碼庫的最低權限
-    permissions:
-      contents: write
-
     steps:
-    - name: 1. 檢出程式碼 (Checkout Repo)
-      uses: actions/checkout@v4
+      - name: 1. 檢出程式碼
+        uses: actions/checkout@v3
 
-    - name: 2. 設定 Python 環境
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
+      - name: 2. 設定 Python 環境
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-- name: 3. 安裝必要套件
-       run: |
-         python -m pip install --upgrade pip
-         pip install requests beautifulsoup4 pandas yfinance
+      - name: 3. 安裝必要套件
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4 pandas yfinance
 
-    - name: 4. 執行 Python 爬蟲 (注入安全金鑰)
-      # 🔒 SECURITY CHECKPOINT: 從 GitHub Secrets 安全傳遞金鑰至 Python 環境變數
-      env:
-        MY_API_SECRET: ${{ secrets.API_SECRET_KEY }}
-      run: python scraper.py
+      - name: 4. 執行爬蟲腳本
+        run: python scraper.py
 
-    - name: 5. 自動 Commit 並安全 Update data.json
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Security Bot"
-        git add data.json
-        git diff-index --quiet HEAD || (git commit -m "Auto-update data.json [skip ci]" && git push)
+      - name: 5. 提交並推送新數據
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions@github.com"
+          git add data.json
+          git commit -m "Auto update data.json" || exit 0
+          git push
