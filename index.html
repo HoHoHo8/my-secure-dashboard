@@ -1,279 +1,498 @@
 <!DOCTYPE html>
-<html lang="zh-HK" class="dark">
+<html lang="zh-TW" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GLOBAL Pulse | 全球環球市場總覽</title>
+    <title>TW Pulse | MARKET INTELLIGENCE</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #0b0f19; color: #94a3b8; }
+        body { background-color: #0b0f19; color: #94a3b8; font-family: system-ui, -apple-system, sans-serif; }
         .card-bg { background-color: #131b2e; border: 1px solid #1e293b; }
         .sidebar-bg { background-color: #0f172a; border-right: 1px solid #1e293b; }
-        .nav-btn.active { background-color: rgba(37, 99, 235, 0.2); color: #60a5fa; border-left: 4px solid #3b82f6; }
+        .nav-btn { transition: all 0.2s; border-left: 4px solid transparent; }
+        .nav-btn.active { background-color: rgba(37, 99, 235, 0.2); color: #60a5fa; border-left-color: #3b82f6; font-weight: bold; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
     </style>
 </head>
-<body class="font-sans antialiased h-screen flex overflow-hidden">
+<body class="h-screen flex overflow-hidden">
 
-    <!-- 左側導覽列 -->
+    <!-- 左側邊欄 Navigation Sidebar -->
     <aside class="w-64 sidebar-bg flex-shrink-0 hidden md:flex flex-col justify-between p-4">
         <div>
-            <div class="flex items-center gap-3 px-2 py-3 mb-6">
-                <div class="bg-blue-600 text-white p-2 rounded-lg font-bold">HK/US</div>
-                <div>
-                    <h1 class="text-white font-bold text-lg tracking-wide">GLOBAL Pulse</h1>
-                    <p class="text-xs text-slate-500">MARKET INTELLIGENCE</p>
-                </div>
+            <!-- Header Logo -->
+            <div class="flex items-center gap-3 px-2 py-3 mb-4">
+                <div class="bg-blue-600 text-white font-black text-lg px-2.5 py-1 rounded">TW Pulse</div>
+                <div class="text-[10px] text-slate-400 font-bold tracking-widest">MARKET INTELLIGENCE</div>
             </div>
 
-            <!-- 可切換的選單按鈕 -->
-            <nav class="space-y-1">
-                <button onclick="switchTab('overview')" id="nav-overview" class="nav-btn active w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white transition">
-                    <i class="fa-solid fa-chart-pie w-5"></i> 市場總覽
+            <!-- 核心分頁導覽按鈕 -->
+            <nav class="space-y-1 text-xs">
+                <button onclick="switchTab('tab-overview')" id="btn-tab-overview" class="nav-btn active w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-300">
+                    <i class="fa-solid fa-table-cells-large w-4"></i> 總覽首頁
                 </button>
-                <button onclick="switchTab('hkex')" id="nav-hkex" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white transition">
-                    <i class="fa-solid fa-building-columns w-5"></i> 港股市場 (HKEX)
+                <button onclick="switchTab('tab-pulse')" id="btn-tab-pulse" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-heart-pulse w-4"></i> 市場脈動
                 </button>
-                <button onclick="switchTab('us')" id="nav-us" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white transition">
-                    <i class="fa-solid fa-chart-line w-5"></i> 美股市場 (US)
+                <button onclick="switchTab('tab-index')" id="btn-tab-index" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-chart-line w-4"></i> 指數走勢
                 </button>
-                <button onclick="switchTab('risk')" id="nav-risk" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white transition">
-                    <i class="fa-solid fa-shield-halved w-5"></i> 風險監控
+                <button onclick="switchTab('tab-breadth')" id="btn-tab-breadth" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-chart-pie w-4"></i> 市場廣度
+                </button>
+                <button onclick="switchTab('tab-heatmap')" id="btn-tab-heatmap" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-fire w-4"></i> 產業熱力圖
+                </button>
+                <button onclick="switchTab('tab-inst')" id="btn-tab-inst" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-building-columns w-4"></i> 法人動向
+                </button>
+                <button onclick="switchTab('tab-global')" id="btn-tab-global" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-globe w-4"></i> 國際市場
+                </button>
+                <button onclick="switchTab('tab-afterhours')" id="btn-tab-afterhours" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-list-ol w-4"></i> 盤後數據
+                </button>
+                <button onclick="switchTab('tab-risk')" id="btn-tab-risk" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-shield-halved w-4"></i> 風險監控
+                </button>
+                
+                <!-- 設定頁面按鈕 (指向新分頁) -->
+                <button onclick="switchTab('tab-settings')" id="btn-tab-settings" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-400 hover:text-white mt-4 border-t border-slate-800/80 pt-3">
+                    <i class="fa-solid fa-gear w-4"></i> 設定
                 </button>
             </nav>
         </div>
 
-        <div class="border-t border-slate-800 pt-4 px-2 text-xs text-slate-500">
-            <p>🟢 市場資料連線中</p>
-            <p class="mt-1">資料更新時間：<span id="update-time" class="text-slate-300">--</span></p>
+        <!-- 底部登入狀態 -->
+        <div class="border-t border-slate-800 pt-4 px-2 space-y-2 text-xs">
+            <div class="flex items-center gap-2 text-emerald-400 font-semibold">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> 本機展示模式
+            </div>
+            <button onclick="alert('已登出')" class="w-full text-left text-slate-500 hover:text-slate-300 transition">
+                <i class="fa-solid fa-right-from-bracket mr-1"></i> 登出
+            </button>
         </div>
     </aside>
 
-    <!-- 主要內容區域 -->
-    <main class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
-
-        <!-- 頂部標題區 -->
-        <header class="flex justify-between items-center mb-2">
-            <div>
-                <h2 id="page-title" class="text-2xl font-bold text-white">全球環球市場總覽</h2>
-                <p id="page-subtitle" class="text-xs text-slate-400">即時監控香港恆生指數及美國三大股指動態</p>
+    <!-- 主工作區 (Main Area) -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        
+        <!-- 頂部搜尋與同步狀態列 Header Bar -->
+        <header class="h-14 border-b border-slate-800 px-6 flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center gap-3 text-xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span class="text-emerald-400 font-bold" id="conn-status">市場資料已連線</span>
+                <span class="text-slate-500" id="last-update-time">更新 2026/08/01 23:57</span>
             </div>
-            <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg text-xs">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span class="text-slate-300">自動同步已開啟</span>
+            <div class="flex items-center gap-4">
+                <div class="relative w-80">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                    <input type="text" placeholder="搜尋股票代號、名稱或指標" class="w-full bg-slate-900 border border-slate-800 rounded-lg pl-8 pr-4 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate"></i> 同步資料
+                </button>
             </div>
         </header>
 
-        <!-- 指數 Ticker 列 -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div class="card-bg p-4 rounded-xl flex justify-between items-center">
-                <div>
-                    <p class="text-xs text-slate-400 font-semibold">🇭🇰 恆生指數 (HSI)</p>
-                    <h3 class="text-2xl font-bold text-white mt-1" id="hsi-price">--</h3>
-                </div>
-                <span id="hsi-badge" class="px-2.5 py-1 rounded-md text-xs font-bold bg-slate-800 text-slate-400">-- %</span>
-            </div>
-            <div class="card-bg p-4 rounded-xl flex justify-between items-center">
-                <div>
-                    <p class="text-xs text-slate-400 font-semibold">🇺🇸 標普 500 (S&P 500)</p>
-                    <h3 class="text-2xl font-bold text-white mt-1" id="sp500-price">--</h3>
-                </div>
-                <span id="sp500-badge" class="px-2.5 py-1 rounded-md text-xs font-bold bg-slate-800 text-slate-400">-- %</span>
-            </div>
-            <div class="card-bg p-4 rounded-xl flex justify-between items-center">
-                <div>
-                    <p class="text-xs text-slate-400 font-semibold">🇺🇸 納斯達克 (NASDAQ)</p>
-                    <h3 class="text-2xl font-bold text-white mt-1" id="nasdaq-price">--</h3>
-                </div>
-                <span id="nasdaq-badge" class="px-2.5 py-1 rounded-md text-xs font-bold bg-slate-800 text-slate-400">-- %</span>
-            </div>
-        </div>
+        <!-- 頁面主要內容區 (可滾動) -->
+        <main class="flex-1 overflow-y-auto p-6 space-y-6">
 
-        <!-- 分頁 1: 市場總覽 (Overview View) -->
-        <div id="view-overview" class="tab-view space-y-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- 儀表板 -->
-                <div class="card-bg p-5 rounded-xl flex flex-col justify-between">
-                    <h3 class="text-base font-bold text-white"><i class="fa-solid fa-gauge-high text-blue-400 mr-2"></i>市場情緒指數</h3>
-                    <div class="relative flex justify-center items-center my-4 h-44">
-                        <canvas id="gaugeChart"></canvas>
-                        <div class="absolute bottom-4 text-center">
-                            <span id="sentiment-score" class="text-3xl font-extrabold text-white">--</span>
-                            <p class="text-xs text-emerald-400 font-semibold mt-1">貪婪偏多</p>
-                        </div>
+            <!-- 1. 總覽首頁 -->
+            <section id="tab-overview" class="tab-content active space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card-bg p-5 rounded-xl">
+                        <h3 class="text-xs text-slate-400 font-bold mb-2">市場健康度</h3>
+                        <p class="text-3xl font-extrabold text-white">75.0 <span class="text-xs text-emerald-400 font-normal">偏強</span></p>
+                    </div>
+                    <div class="card-bg p-5 rounded-xl">
+                        <h3 class="text-xs text-slate-400 font-bold mb-2">三大法人合計</h3>
+                        <p class="text-3xl font-extrabold text-emerald-400">+808.9 億</p>
+                    </div>
+                    <div class="card-bg p-5 rounded-xl">
+                        <h3 class="text-xs text-slate-400 font-bold mb-2">多空家數比</h3>
+                        <p class="text-3xl font-extrabold text-white">8.10 <span class="text-xs text-emerald-400 font-normal">偏多</span></p>
                     </div>
                 </div>
-                <!-- 折線圖 -->
-                <div class="card-bg p-5 rounded-xl lg:col-span-2">
-                    <h3 class="text-base font-bold text-white mb-4"><i class="fa-solid fa-chart-line text-emerald-400 mr-2"></i>日內走勢對比圖</h3>
-                    <div class="h-56"><canvas id="trendChart"></canvas></div>
-                </div>
-            </div>
+            </section>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- 港股表格 -->
+            <!-- 2. 市場脈動 -->
+            <section id="tab-pulse" class="tab-content space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="card-bg p-5 rounded-xl">
+                        <h3 class="text-sm font-bold text-white mb-4">市場脈動總覽</h3>
+                        <div class="flex items-center gap-6">
+                            <div class="text-center">
+                                <span class="text-4xl font-black text-white">75.0</span>
+                                <span class="text-xs block text-emerald-400 mt-1">偏強</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 text-xs flex-1">
+                                <div class="bg-slate-900/60 p-3 rounded border border-slate-800">
+                                    <span class="text-slate-500">市場健康</span>
+                                    <p class="text-lg font-bold text-white">66.4 <span class="text-xs text-amber-400">偏強</span></p>
+                                </div>
+                                <div class="bg-slate-900/60 p-3 rounded border border-slate-800">
+                                    <span class="text-slate-500">市場風險</span>
+                                    <p class="text-lg font-bold text-white">33.6 <span class="text-xs text-rose-400">風險偏低</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-bg p-5 rounded-xl">
+                        <h3 class="text-sm font-bold text-white mb-2">分數歷史</h3>
+                        <div class="h-32"><canvas id="chartPulseHistory"></canvas></div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                    <div class="card-bg p-5 rounded-xl space-y-3">
+                        <h4 class="font-bold text-emerald-400 border-b border-slate-800 pb-2">正面因素</h4>
+                        <div id="pulse-pos-list" class="space-y-2"></div>
+                    </div>
+                    <div class="card-bg p-5 rounded-xl space-y-3">
+                        <h4 class="font-bold text-rose-400 border-b border-slate-800 pb-2">風險因素</h4>
+                        <div id="pulse-risk-list" class="space-y-2"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. 指數走勢 -->
+            <section id="tab-index" class="tab-content space-y-6">
                 <div class="card-bg p-5 rounded-xl">
-                    <h3 class="text-base font-bold text-white mb-3">🇭🇰 港股焦點重倉股</h3>
-                    <table class="w-full text-left text-sm">
-                        <thead class="text-xs text-slate-500 uppercase border-b border-slate-800">
-                            <tr><th class="pb-2">股票</th><th class="pb-2 text-right">現價 (HKD)</th><th class="pb-2 text-right">漲跌</th></tr>
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <span class="text-xs text-slate-500 block">發行量加權股價指數</span>
+                            <span class="text-3xl font-bold text-white">43,119.75</span>
+                            <span class="text-xs text-emerald-400 ml-2">+3186.45 (+7.98%)</span>
+                        </div>
+                    </div>
+                    <div class="h-64"><canvas id="chartIndexTrend"></canvas></div>
+                </div>
+                <div class="card-bg p-5 rounded-xl overflow-x-auto">
+                    <h4 class="text-xs font-bold text-white mb-3">指數歷史資料 (臺灣證券交易所 OpenAPI)</h4>
+                    <table class="w-full text-xs text-left">
+                        <thead class="bg-slate-900 text-slate-400">
+                            <tr><th class="p-2">日期</th><th class="p-2">開盤</th><th class="p-2">最高</th><th class="p-2">最低</th><th class="p-2">收盤</th><th class="p-2">漲跌幅</th></tr>
                         </thead>
-                        <tbody id="hk-stocks-body"></tbody>
+                        <tbody id="idx-table-body" class="divide-y divide-slate-800/60"></tbody>
                     </table>
                 </div>
-                <!-- 美股表格 -->
+            </section>
+
+            <!-- 4. 市場廣度 -->
+            <section id="tab-breadth" class="tab-content space-y-6">
+                <div class="grid grid-cols-4 gap-4 text-xs">
+                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">上漲家數</span><p class="text-xl font-bold text-emerald-400 mt-1">3,766 家</p></div>
+                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">下跌家數</span><p class="text-xl font-bold text-rose-400 mt-1">465 家</p></div>
+                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">平盤家數</span><p class="text-xl font-bold text-yellow-400 mt-1">173 家</p></div>
+                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">多空比</span><p class="text-xl font-bold text-white mt-1">8.1</p></div>
+                </div>
                 <div class="card-bg p-5 rounded-xl">
-                    <h3 class="text-base font-bold text-white mb-3">🇺🇸 美股科技巨頭</h3>
-                    <table class="w-full text-left text-sm">
-                        <thead class="text-xs text-slate-500 uppercase border-b border-slate-800">
-                            <tr><th class="pb-2">股票</th><th class="pb-2 text-right">現價 (USD)</th><th class="pb-2 text-right">漲跌</th></tr>
-                        </thead>
-                        <tbody id="us-stocks-body"></tbody>
-                    </table>
+                    <h4 class="text-xs font-bold text-white mb-3">市場廣度趨勢 (上漲與下跌家數歷史)</h4>
+                    <div class="h-64"><canvas id="chartBreadthTrend"></canvas></div>
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <!-- 分頁 2: 港股專區 (HKEX View) -->
-        <div id="view-hkex" class="tab-view hidden space-y-6">
-            <div class="card-bg p-6 rounded-xl">
-                <h3 class="text-xl font-bold text-white mb-4">🇭🇰 香港交易所 (HKEX) 深度數據分析</h3>
-                <p class="text-sm text-slate-400">包含藍籌股、國企指數以及科網股每日動態流向。</p>
-                <div class="mt-6 border-t border-slate-800 pt-4">
-                    <table class="w-full text-left text-sm">
-                        <thead class="text-xs text-slate-500 uppercase border-b border-slate-800">
-                            <tr><th class="pb-3">股票名稱</th><th class="pb-3 text-right">現價 (HKD)</th><th class="pb-3 text-right">漲跌幅</th></tr>
-                        </thead>
-                        <tbody id="hk-stocks-body-full"></tbody>
-                    </table>
+            <!-- 5. 產業熱力圖 -->
+            <section id="tab-heatmap" class="tab-content space-y-6">
+                <h3 class="text-sm font-bold text-white">產業資金熱力圖</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="heatmap-grid"></div>
+            </section>
+
+            <!-- 6. 法人動向 -->
+            <section id="tab-inst" class="tab-content space-y-6">
+                <div class="grid grid-cols-4 gap-4 text-xs">
+                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">外資</span><p class="text-lg font-bold text-emerald-400 mt-1">+602.4 億</p></div>
+                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">投信</span><p class="text-lg font-bold text-emerald-400 mt-1">+363.2 億</p></div>
+                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">自營商</span><p class="text-lg font-bold text-rose-400 mt-1">-156.7 億</p></div>
+                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">合計</span><p class="text-xl font-bold text-emerald-400 mt-1">+808.9 億</p></div>
                 </div>
-            </div>
-        </div>
-
-        <!-- 分頁 3: 美股專區 (US View) -->
-        <div id="view-us" class="tab-view hidden space-y-6">
-            <div class="card-bg p-6 rounded-xl">
-                <h3 class="text-xl font-bold text-white mb-4">🇺🇸 美國股市 (US Markets) 科技龍頭與大盤</h3>
-                <p class="text-sm text-slate-400">追蹤 S&P 500、Nasdaq 100 及 Magnificent 7 巨頭表現。</p>
-                <div class="mt-6 border-t border-slate-800 pt-4">
-                    <table class="w-full text-left text-sm">
-                        <thead class="text-xs text-slate-500 uppercase border-b border-slate-800">
-                            <tr><th class="pb-3">股票名稱</th><th class="pb-3 text-right">現價 (USD)</th><th class="pb-3 text-right">漲跌幅</th></tr>
-                        </thead>
-                        <tbody id="us-stocks-body-full"></tbody>
-                    </table>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                    <div class="card-bg p-5 rounded-xl">
+                        <h4 class="font-bold text-emerald-400 mb-3">法人買超排行 Top 5</h4>
+                        <div id="inst-buy-list" class="space-y-2"></div>
+                    </div>
+                    <div class="card-bg p-5 rounded-xl">
+                        <h4 class="font-bold text-rose-400 mb-3">法人賣超排行 Top 5</h4>
+                        <div id="inst-sell-list" class="space-y-2"></div>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <!-- 分頁 4: 風險監控 (Risk View) -->
-        <div id="view-risk" class="tab-view hidden space-y-6">
-            <div class="card-bg p-6 rounded-xl text-center py-12">
-                <i class="fa-solid fa-shield-halved text-5xl text-blue-500 mb-4"></i>
-                <h3 class="text-xl font-bold text-white">市場風險波動監控系統</h3>
-                <p class="text-sm text-slate-400 mt-2">當前整體市場 VIX 波動指數處於正常安全區間 (14.2)。</p>
-            </div>
-        </div>
+            <!-- 7. 國際市場 -->
+            <section id="tab-global" class="tab-content space-y-6">
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="global-grid"></div>
+            </section>
 
-    </main>
+            <!-- 8. 盤後數據 -->
+            <section id="tab-afterhours" class="tab-content space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                    <div class="card-bg p-5 rounded-xl">
+                        <h4 class="font-bold text-emerald-400 mb-3">漲幅排行</h4>
+                        <div id="after-gainers-list" class="space-y-2"></div>
+                    </div>
+                    <div class="card-bg p-5 rounded-xl">
+                        <h4 class="font-bold text-rose-400 mb-3">跌幅排行</h4>
+                        <div id="after-losers-list" class="space-y-2"></div>
+                    </div>
+                </div>
+            </section>
 
+            <!-- 9. 風險監控 -->
+            <section id="tab-risk" class="tab-content space-y-6">
+                <div class="card-bg p-5 rounded-xl">
+                    <h4 class="text-xs font-bold text-white mb-4">風險事件清單 (僅顯示高風險警訊)</h4>
+                    <div id="risk-events-container" class="space-y-3 text-xs"></div>
+                </div>
+            </section>
+
+            <!-- 10. 設定 (Setup Page - 完全對照用戶截圖) -->
+            <section id="tab-settings" class="tab-content space-y-6">
+                <!-- 頁面標題列 -->
+                <div>
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-xl font-bold text-white">設定</h2>
+                        <span class="text-xs text-slate-400">顯示偏好、自動同步與各資料來源狀態。</span>
+                    </div>
+                    <div class="mt-2 inline-flex items-center gap-2 px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-[11px]">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span class="text-emerald-400 font-bold">市場資料已連線</span>
+                        <span class="text-slate-500">官方盤後資料</span>
+                        <span class="text-slate-500">資料日期 <span id="set-data-date">2026/07/31</span></span>
+                        <span class="text-slate-500">更新 <span id="set-update-time">08/01 23:57</span></span>
+                    </div>
+                </div>
+
+                <!-- 上方 3 大狀態卡片 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card-bg p-5 rounded-xl space-y-1">
+                        <span class="text-xs text-slate-500">自動同步</span>
+                        <p class="text-2xl font-bold text-white flex items-center justify-between">
+                            開啟
+                            <span class="text-xs px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-800/50 font-normal">市場資料已連線</span>
+                        </p>
+                    </div>
+                    <div class="card-bg p-5 rounded-xl space-y-1">
+                        <span class="text-xs text-slate-500">市場時段</span>
+                        <p class="text-2xl font-bold text-white">非交易日</p>
+                        <span class="text-xs text-slate-500 block">官方盤後資料</span>
+                    </div>
+                    <div class="card-bg p-5 rounded-xl space-y-1">
+                        <span class="text-xs text-slate-500">最後成功更新</span>
+                        <p class="text-2xl font-bold text-white" id="card-last-success">08/01 23:57</p>
+                    </div>
+                </div>
+
+                <!-- 帳戶與顯示偏好區塊 -->
+                <div class="card-bg p-5 rounded-xl flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold text-white">帳戶與顯示偏好</h3>
+                        <p class="text-xs text-slate-400 mt-1">顯示比例可由頁面 Header 的顯示大小選單調整；自動同步由後端集中執行，不會讓每位使用者重複呼叫 Provider。</p>
+                    </div>
+                    <button onclick="alert('開啟帳戶設定')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+                        開啟帳戶設定
+                    </button>
+                </div>
+
+                <!-- 資料來源狀態表格區塊 -->
+                <div class="card-bg p-5 rounded-xl space-y-3">
+                    <div>
+                        <h3 class="text-sm font-bold text-white">資料來源狀態</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">一般畫面已將內部 dataset key 轉成可閱讀中文名稱</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-slate-900/80 text-slate-400 border-b border-slate-800">
+                                <tr>
+                                    <th class="p-3 font-semibold">資料集</th>
+                                    <th class="p-3 font-semibold">來源</th>
+                                    <th class="p-3 font-semibold">資料類型</th>
+                                    <th class="p-3 font-semibold">資料日期</th>
+                                    <th class="p-3 font-semibold">最後成功更新</th>
+                                    <th class="p-3 font-semibold text-right">狀態</th>
+                                </tr>
+                            </thead>
+                            <tbody id="settings-table-body" class="divide-y divide-slate-800/60"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- JS Logic -->
     <script>
-        // 切換分頁 (Tab Switcher)
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+        // 切換分頁邏輯
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-
-            document.getElementById(`view-${tab}`).classList.remove('hidden');
-            document.getElementById(`nav-${tab}`).classList.add('active');
-
-            const titles = {
-                'overview': ['全球環球市場總覽', '即時監控香港恆生指數及美國三大股指動態'],
-                'hkex': ['香港股市 (HKEX) 專區', '專注港股藍籌與科技股動態'],
-                'us': ['美國股市 (US) 專區', '專注美股大盤與 Magnificent 7 科技巨頭'],
-                'risk': ['全球市場風險監控', '系統性風險評估與波動度指示']
-            };
-            document.getElementById('page-title').innerText = titles[tab][0];
-            document.getElementById('page-subtitle').innerText = titles[tab][1];
+            
+            document.getElementById(tabId).classList.add('active');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if(activeBtn) activeBtn.classList.add('active');
         }
 
-        // 載入 JSON 並渲染數據
+        // 初始化資料渲染
         fetch('./data.json')
             .then(res => res.json())
             .then(data => {
-                document.getElementById('update-time').innerText = data.last_updated || '今日';
+                document.getElementById('last-update-time').innerText = '更新 ' + data.last_updated;
 
-                // 填入指數 Tickers
-                if(data.indices) {
-                    renderTicker('hsi-price', 'hsi-badge', data.indices.hsi);
-                    renderTicker('sp500-price', 'sp500-badge', data.indices.sp500);
-                    renderTicker('nasdaq-price', 'nasdaq-badge', data.indices.nasdaq);
+                // 渲染設定頁面數據 (Settings Data)
+                if(data.settings) {
+                    document.getElementById('card-last-success').innerText = data.settings.last_success;
+                    
+                    const badgeStyles = {
+                        success: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/50',
+                        warning: 'bg-amber-950/80 text-amber-400 border-amber-800/50',
+                        danger: 'bg-rose-950/80 text-rose-400 border-rose-800/50',
+                        neutral: 'bg-slate-800 text-slate-400 border-slate-700'
+                    };
+
+                    document.getElementById('settings-table-body').innerHTML = data.settings.data_sources.map(s => `
+                        <tr class="hover:bg-slate-900/40 transition">
+                            <td class="p-3 font-bold text-slate-200">${s.dataset}</td>
+                            <td class="p-3 text-slate-400">${s.source}</td>
+                            <td class="p-3 text-slate-400">${s.type}</td>
+                            <td class="p-3 text-slate-300 font-mono">${s.date}</td>
+                            <td class="p-3 text-slate-300 font-mono">${s.updated}</td>
+                            <td class="p-3 text-right">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold border ${badgeStyles[s.badge]}">
+                                    ${s.status}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('');
                 }
 
-                // 填入儀表板
-                const score = data.market_sentiment || 68.5;
-                document.getElementById('sentiment-score').innerText = score;
-                new Chart(document.getElementById('gaugeChart'), {
-                    type: 'doughnut',
-                    data: {
-                        datasets: [{ data: [score, 100 - score], backgroundColor: ['#10b981', '#1e293b'], borderWidth: 0 }]
-                    },
-                    options: { rotation: -90, circumference: 180, cutout: '80%', responsive: true, maintainAspectRatio: false }
-                });
-
-                // 填入趨勢圖
-                new Chart(document.getElementById('trendChart'), {
-                    type: 'line',
-                    data: {
-                        labels: data.trend_labels,
-                        datasets: [
-                            { label: '恆指', data: data.hsi_trend, borderColor: '#3b82f6', fill: false },
-                            { label: '納指', data: data.us_trend, borderColor: '#10b981', fill: false }
-                        ]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-
-                // 填入股票表格
-                if(data.hk_stocks) {
-                    renderTable('hk-stocks-body', data.hk_stocks);
-                    renderTable('hk-stocks-body-full', data.hk_stocks);
+                // 1. 市場脈動
+                if(data.pulse) {
+                    document.getElementById('pulse-pos-list').innerHTML = data.pulse.positive_factors.map(f => `
+                        <div class="flex justify-between p-2 rounded bg-slate-900/40">
+                            <div><span class="font-bold text-white block">${f.name}</span><span class="text-slate-500">${f.desc}</span></div>
+                            <span class="text-emerald-400 font-bold">${f.score}</span>
+                        </div>
+                    `).join('');
+                    document.getElementById('pulse-risk-list').innerHTML = data.pulse.risk_factors.map(f => `
+                        <div class="flex justify-between p-2 rounded bg-slate-900/40">
+                            <div><span class="font-bold text-white block">${f.name}</span><span class="text-slate-500">${f.desc}</span></div>
+                            <span class="text-rose-400 font-bold">${f.score}</span>
+                        </div>
+                    `).join('');
                 }
-                if(data.us_stocks) {
-                    renderTable('us-stocks-body', data.us_stocks);
-                    renderTable('us-stocks-body-full', data.us_stocks);
+
+                // 2. 指數歷史
+                if(data.index_trends) {
+                    document.getElementById('idx-table-body').innerHTML = data.index_trends.table.map(row => `
+                        <tr>
+                            <td class="p-2 text-slate-300">${row.date}</td>
+                            <td class="p-2">${row.open}</td>
+                            <td class="p-2">${row.high}</td>
+                            <td class="p-2">${row.low}</td>
+                            <td class="p-2 font-bold text-white">${row.close}</td>
+                            <td class="p-2 font-bold ${row.pct.startsWith('+') ? 'text-emerald-400' : 'text-rose-400'}">${row.pct}</td>
+                        </tr>
+                    `).join('');
+
+                    new Chart(document.getElementById('chartIndexTrend'), {
+                        type: 'line',
+                        data: {
+                            labels: data.index_trends.history_dates,
+                            datasets: [{ label: '加權指數', data: data.index_trends.taiex_prices, borderColor: '#3b82f6', tension: 0.3, fill: false }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false }
+                    });
+                }
+
+                // 3. 市場廣度
+                if(data.breadth) {
+                    new Chart(document.getElementById('chartBreadthTrend'), {
+                        type: 'line',
+                        data: {
+                            labels: ['07/15', '07/16', '07/17', '07/21', '07/22', '07/28', '07/29', '07/30', '07/31'],
+                            datasets: [
+                                { label: '上漲家數', data: data.breadth.rising_history, borderColor: '#10b981', tension: 0.2 },
+                                { label: '下跌家數', data: data.breadth.falling_history, borderColor: '#f43f5e', tension: 0.2 }
+                            ]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false }
+                    });
+                }
+
+                // 4. 產業熱力圖
+                if(data.sectors_heatmap) {
+                    document.getElementById('heatmap-grid').innerHTML = data.sectors_heatmap.map(s => `
+                        <div class="${s.bg} p-4 rounded-xl text-white">
+                            <span class="font-bold block">${s.name}</span>
+                            <span class="text-lg font-black block mt-1">${s.pct}</span>
+                            <span class="text-[10px] opacity-80 block mt-1">${s.status} ${s.amount}</span>
+                        </div>
+                    `).join('');
+                }
+
+                // 5. 法人動向
+                if(data.institutional) {
+                    document.getElementById('inst-buy-list').innerHTML = data.institutional.top_buy.map(i => `
+                        <div class="flex justify-between p-2 rounded bg-slate-900/50">
+                            <span>${i.rank}. ${i.name} (${i.code})</span>
+                            <span class="text-emerald-400 font-bold">${i.shares}</span>
+                        </div>
+                    `).join('');
+                    document.getElementById('inst-sell-list').innerHTML = data.institutional.top_sell.map(i => `
+                        <div class="flex justify-between p-2 rounded bg-slate-900/50">
+                            <span>${i.rank}. ${i.name} (${i.code})</span>
+                            <span class="text-rose-400 font-bold">${i.shares}</span>
+                        </div>
+                    `).join('');
+                }
+
+                // 6. 國際市場
+                if(data.global_markets) {
+                    document.getElementById('global-grid').innerHTML = data.global_markets.map(g => `
+                        <div class="card-bg p-4 rounded-xl">
+                            <span class="text-xs text-slate-500 block">${g.title}</span>
+                            <span class="text-xl font-bold text-white block mt-1">${g.price}</span>
+                            <span class="text-xs font-bold ${g.is_pos ? 'text-emerald-400' : 'text-rose-400'}">${g.pct}</span>
+                        </div>
+                    `).join('');
+                }
+
+                // 7. 盤後數據
+                if(data.after_hours) {
+                    document.getElementById('after-gainers-list').innerHTML = data.after_hours.gainers.map(a => `
+                        <div class="flex justify-between p-2 rounded bg-slate-900/50">
+                            <span>${a.rank}. ${a.name} (${a.code})</span>
+                            <span class="text-emerald-400 font-bold">${a.pct}</span>
+                        </div>
+                    `).join('');
+                    document.getElementById('after-losers-list').innerHTML = data.after_hours.losers.map(a => `
+                        <div class="flex justify-between p-2 rounded bg-slate-900/50">
+                            <span>${a.rank}. ${a.name} (${a.code})</span>
+                            <span class="text-rose-400 font-bold">${a.pct}</span>
+                        </div>
+                    `).join('');
+                }
+
+                // 8. 風險事件
+                if(data.risk_events) {
+                    document.getElementById('risk-events-container').innerHTML = data.risk_events.map(r => `
+                        <div class="p-3 rounded bg-slate-900/60 border ${r.color} flex justify-between items-center">
+                            <div>
+                                <span class="text-slate-400 text-[10px] block">${r.time} • ${r.scope}</span>
+                                <span class="font-bold text-white">${r.event}</span>
+                                <p class="text-slate-400 mt-0.5">${r.desc}</p>
+                            </div>
+                            <span class="px-2 py-1 rounded text-[10px] font-bold ${r.level === '高' ? 'bg-rose-500/20 text-rose-400' : 'bg-yellow-500/20 text-yellow-400'}">重要程度: ${r.level}</span>
+                        </div>
+                    `).join('');
                 }
             })
-            .catch(err => {
-                console.error("JSON 載入失敗:", err);
-                document.getElementById('update-time').innerText = '請先重新執行 Actions 產生數據';
-            });
-
-        function renderTicker(priceId, badgeId, indexData) {
-            if(!indexData) return;
-            document.getElementById(priceId).innerText = indexData.price.toLocaleString();
-            const badge = document.getElementById(badgeId);
-            const isPos = indexData.change_pct >= 0;
-            badge.innerText = (isPos ? '+' : '') + indexData.change_pct + '%';
-            badge.className = `px-2.5 py-1 rounded-md text-xs font-bold ${isPos ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`;
-        }
-
-        function renderTable(elementId, stocks) {
-            const tbody = document.getElementById(elementId);
-            if(!tbody) return;
-            tbody.innerHTML = stocks.map(stock => {
-                const isPos = stock.pct >= 0;
-                return `
-                    <tr class="hover:bg-slate-800/30 transition border-b border-slate-800/40">
-                        <td class="py-3 font-semibold text-white">${stock.name}</td>
-                        <td class="py-3 text-right font-mono">${stock.price.toLocaleString()}</td>
-                        <td class="py-3 text-right font-bold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">
-                            ${isPos ? '+' : ''}${stock.pct}%
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
+            .catch(err => console.error(err));
     </script>
 </body>
 </html>
