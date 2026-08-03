@@ -1,49 +1,103 @@
-安全自動化數據監控 Dashboard
-    
-    
-    
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>安全自動化數據監控 Dashboard</title>
+    <!-- 引入 Tailwind CSS 與 Chart.js -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
 
+    <!-- Top Navigation -->
+    <nav class="bg-slate-800 p-4 shadow-lg text-white flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <span class="text-2xl">🛡️</span>
+            <h1 class="text-xl font-bold">自動化數據分析 Dashboard</h1>
+        </div>
+        <span class="text-xs md:text-sm bg-slate-700 px-3 py-1 rounded-full border border-slate-600">
+            最後更新：<span id="update-time" class="text-green-400 font-mono">載入中...</span>
+        </span>
+    </nav>
 
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-6">
+        
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-indigo-500">
+                <p class="text-gray-500 text-sm font-semibold">總追蹤數據量</p>
+                <h2 class="text-3xl font-bold text-gray-800 mt-1" id="stat-total">--</h2>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-emerald-500">
+                <p class="text-gray-500 text-sm font-semibold">今日新增互動</p>
+                <h2 class="text-3xl font-bold text-gray-800 mt-1" id="stat-today">--</h2>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-amber-500">
+                <p class="text-gray-500 text-sm font-semibold">平均互動率</p>
+                <h2 class="text-3xl font-bold text-gray-800 mt-1" id="stat-rate">--</h2>
+            </div>
+        </div>
 
-    
-    
-        
-            🛡️
-            自動化數據分析 Dashboard
-        
-        
-            最後更新：載入中...
-        
-    
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+                    <span>📈</span> 近期數據趨勢
+                </h3>
+                <canvas id="lineChart"></canvas>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+                    <span>📊</span> 數據類別分布
+                </h3>
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+    </div>
 
-    
-    
-        
-        
-        
-            
-                總追蹤數據量
-                --
-            
-            
-                今日新增互動
-                --
-            
-            
-                平均互動率
-                --
-            
-        
+    <!-- Data Fetch Script -->
+    <script>
+        fetch('./data.json')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('update-time').innerText = data.last_updated;
+                document.getElementById('stat-total').innerText = data.total_count.toLocaleString();
+                document.getElementById('stat-today').innerText = '+' + data.today_count.toLocaleString();
+                document.getElementById('stat-rate').innerText = data.rate;
 
-        
-        
-            
-                
-                    📈 近期數據趨勢
-                
-                
-            
-            
-            
-                
-                    📊 數據類別分布
+                new Chart(document.getElementById('lineChart'), {
+                    type: 'line',
+                    data: {
+                        labels: data.trend_labels,
+                        datasets: [{
+                            label: '數據流向趨勢',
+                            data: data.trend_values,
+                            borderColor: '#6366F1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+
+                new Chart(document.getElementById('barChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: data.bar_labels,
+                        datasets: [{
+                            label: '互動次數',
+                            data: data.bar_values,
+                            backgroundColor: ['#6366F1', '#10B981', '#F59E0B', '#EC4899']
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            })
+            .catch(err => console.error('Data error:', err));
+    </script>
+</body>
+</html>
