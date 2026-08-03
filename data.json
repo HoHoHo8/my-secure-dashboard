@@ -1,74 +1,89 @@
-import json
-import os
-from datetime import datetime
-import yfinance as ticker_api
-
-def get_market_data():
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    # 抓取指數與股票數據
-    symbols = {
-        "HSI": "^HSI",        # 恆生指數
-        "SP500": "^GSPC",     # 標普 500
-        "NASDAQ": "^IXIC",    # 納斯達克
-        "TENCENT": "0700.HK", # 騰訊
-        "BABA": "9988.HK",    # 阿里
-        "NVDA": "NVDA",       # 輝達
-        "TSLA": "TSLA"        # 特斯拉
+{
+  "last_updated": "2026-08-03 04:13:21",
+  "market_sentiment": 70.3,
+  "indices": {
+    "hsi": {
+      "price": 25898.18,
+      "change_pct": 0.05
+    },
+    "sp500": {
+      "price": 7489.72,
+      "change_pct": 0.7
+    },
+    "nasdaq": {
+      "price": 25373.85,
+      "change_pct": 1.0
     }
-    
-    fetched_data = {}
-    
-    for key, sym in symbols.items():
-        try:
-            t = ticker_api.Ticker(sym)
-            hist = t.history(period="5d")
-            if not hist.empty:
-                current_price = round(hist['Close'].iloc[-1], 2)
-                prev_price = round(hist['Close'].iloc[-2], 2)
-                change = round(current_price - prev_price, 2)
-                change_pct = round((change / prev_price) * 100, 2)
-                
-                fetched_data[key] = {
-                    "price": current_price,
-                    "change": change,
-                    "change_pct": change_pct
-                }
-        except Exception as e:
-            print(f"抓取 {sym} 失敗: {e}")
-            # 備用數據
-            fetched_data[key] = {"price": 0.0, "change": 0.0, "change_pct": 0.0}
-
-    # 組合 Dashboard JSON
-    dashboard_data = {
-        "last_updated": now,
-        "market_sentiment": 68.5,  # 市場貪婪/恐懼指數 (0-100)
-        "indices": {
-            "hsi": fetched_data.get("HSI", {"price": 17500, "change_pct": +1.25}),
-            "sp500": fetched_data.get("SP500", {"price": 5450, "change_pct": +0.85}),
-            "nasdaq": fetched_data.get("NASDAQ", {"price": 17100, "change_pct": -0.42})
-        },
-        "hk_stocks": [
-            {"name": "騰訊控股 (0700)", "price": fetched_data.get("TENCENT", {}).get("price", 375.0), "pct": fetched_data.get("TENCENT", {}).get("change_pct", 1.8)},
-            {"name": "阿里巴巴 (9988)", "price": fetched_data.get("BABA", {}).get("price", 78.5), "pct": fetched_data.get("BABA", {}).get("change_pct", -0.5)},
-            {"name": "美團點評 (3690)", "price": 115.2, "pct": 2.4},
-            {"name": "小米集團 (1810)", "price": 16.8, "pct": 3.1}
-        ],
-        "us_stocks": [
-            {"name": "NVIDIA (NVDA)", "price": fetched_data.get("NVDA", {}).get("price", 125.0), "pct": fetched_data.get("NVDA", {}).get("change_pct", 4.2)},
-            {"name": "Tesla (TSLA)", "price": fetched_data.get("TSLA", {}).get("price", 210.0), "pct": fetched_data.get("TSLA", {}).get("change_pct", -2.1)},
-            {"name": "Apple (AAPL)", "price": 224.5, "pct": 0.9},
-            {"name": "Microsoft (MSFT)", "price": 448.2, "pct": 1.1}
-        ],
-        "trend_labels": ["09:30", "10:30", "11:30", "13:30", "14:30", "15:30", "16:00"],
-        "hsi_trend": [17400, 17450, 17420, 17480, 17510, 17490, 17530],
-        "us_trend": [17000, 17050, 17020, 17090, 17120, 17080, 17100]
+  },
+  "hk_stocks": [
+    {
+      "name": "騰訊控股 (0700.HK)",
+      "price": 489.2,
+      "pct": 2.95
+    },
+    {
+      "name": "阿里巴巴 (9988.HK)",
+      "price": 124.9,
+      "pct": 6.75
+    },
+    {
+      "name": "美團點評 (3690.HK)",
+      "price": 93.6,
+      "pct": 1.19
+    },
+    {
+      "name": "小米集團 (1810.HK)",
+      "price": 27.74,
+      "pct": -3.61
     }
-
-    with open("data.json", "w", encoding="utf-8") as f:
-        json.dump(dashboard_data, f, ensure_ascii=False, indent=2)
-
-    print(f"[{now}] 港美股數據成功寫入 data.json！")
-
-if __name__ == "__main__":
-    get_market_data()
+  ],
+  "us_stocks": [
+    {
+      "name": "NVIDIA (NVDA)",
+      "price": 200.75,
+      "pct": 2.93
+    },
+    {
+      "name": "Tesla (TSLA)",
+      "price": 311.21,
+      "pct": 0.76
+    },
+    {
+      "name": "Apple (AAPL)",
+      "price": 308.91,
+      "pct": -7.35
+    },
+    {
+      "name": "Microsoft (MSFT)",
+      "price": 464.72,
+      "pct": 3.02
+    }
+  ],
+  "trend_labels": [
+    "09:30",
+    "10:30",
+    "11:30",
+    "13:30",
+    "14:30",
+    "15:30",
+    "16:00"
+  ],
+  "hsi_trend": [
+    17400,
+    17450,
+    17420,
+    17480,
+    17510,
+    17490,
+    17532
+  ],
+  "us_trend": [
+    17000,
+    17050,
+    17020,
+    17090,
+    17120,
+    17080,
+    17120
+  ]
+}
