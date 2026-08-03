@@ -199,87 +199,97 @@
     </div>
 
     <!-- ⚙️ JavaScript邏輯 -->
-    <script>
-        // 🔐 1. Auth Authentication 身份認證邏輯
-        function checkAuth() {
-            const isAuth = localStorage.getItem('tw_pulse_auth');
-            const modal = document.getElementById('login-modal');
-            if (isAuth === 'true') {
-                modal.classList.add('hidden');
-            } else {
-                modal.classList.remove('hidden');
+<script>
+    // 1. Auth 檢查
+    function checkAuth() {
+        const isAuth = localStorage.getItem('tw_pulse_auth');
+        const modal = document.getElementById('login-modal');
+        if (modal) {
+            if (isAuth === 'true') modal.classList.add('hidden');
+            else modal.classList.remove('hidden');
+        }
+    }
+
+    function handleLogin() {
+        const pass = document.getElementById('login-pass').value;
+        if (pass === 'admin123') {
+            localStorage.setItem('tw_pulse_auth', 'true');
+            checkAuth();
+        } else {
+            document.getElementById('login-error').classList.remove('hidden');
+        }
+    }
+
+    function handleLogout() {
+        if (confirm('確定要登出嗎？')) {
+            localStorage.removeItem('tw_pulse_auth');
+            checkAuth();
+        }
+    }
+
+    checkAuth();
+
+    // 2. Tab 切換
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        
+        const targetTab = document.getElementById(tabId);
+        if(targetTab) targetTab.classList.add('active');
+        
+        const activeBtn = document.getElementById('btn-' + tabId);
+        if(activeBtn) activeBtn.classList.add('active');
+    }
+
+    // 3. 安全讀取 data.json
+    fetch('./data.json?v=' + new Date().getTime()) # 加快取破壞防阻舊快取
+        .then(res => {
+            if (!res.ok) throw new Error("HTTP error " + res.status);
+            return res.json();
+        })
+        .then(data => {
+            console.log("已成功獲取數據:", data);
+
+            // 更新時間
+            if(data.last_updated) {
+                document.getElementById('last-update-time').innerText = '更新於 ' + data.last_updated;
             }
-        }
 
-        function handleLogin() {
-            const pass = document.getElementById('login-pass').value;
-            const errorMsg = document.getElementById('login-error');
-            
-            // 預設登入密碼設為 admin123
-            if (pass === 'admin123') {
-                localStorage.setItem('tw_pulse_auth', 'true');
-                errorMsg.classList.add('hidden');
-                checkAuth();
-            } else {
-                errorMsg.classList.remove('hidden');
+            // 首頁數據 (加空值保護)
+            if(data.index_trends && data.index_trends.taiex) {
+                document.getElementById('main-taiex-price').innerText = data.index_trends.taiex.current || '--';
+                document.getElementById('main-taiex-change').innerText = data.index_trends.taiex.change || '--';
             }
-        }
 
-        function handleLogout() {
-            if (confirm('確定要登出 TW Pulse 系統嗎？')) {
-                localStorage.removeItem('tw_pulse_auth');
-                checkAuth(); // 鎖定畫面
+            if(data.institutional) {
+                document.getElementById('main-inst-total').innerText = data.institutional.total || '--';
+                if(document.getElementById('foreign-val')) document.getElementById('foreign-val').innerText = data.institutional.foreign || '--';
+                if(document.getElementById('trust-val')) document.getElementById('trust-val').innerText = data.institutional.trust || '--';
+                if(document.getElementById('prop-val')) document.getElementById('prop-val').innerText = data.institutional.prop || '--';
             }
-        }
 
-        // 初始化登入檢查
-        checkAuth();
+            if(data.breadth) {
+                document.getElementById('main-breadth-ratio').innerText = data.breadth.ratio || '--';
+                if(document.getElementById('rising-cnt')) document.getElementById('rising-cnt').innerText = (data.breadth.rising || 0) + " 家";
+                if(document.getElementById('falling-cnt')) document.getElementById('falling-cnt').innerText = (data.breadth.falling || 0) + " 家";
+                if(document.getElementById('flat-cnt')) document.getElementById('flat-cnt').innerText = (data.breadth.flat || 0) + " 家";
+            }
 
-        // 2. Tab Navigation 分頁切換
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.add('active');
-            const activeBtn = document.getElementById('btn-' + tabId);
-            if(activeBtn) activeBtn.classList.add('active');
-        }
+            // 設定頁面數據
+            if(data.settings) {
+                if(document.getElementById('card-last-success')) document.getElementById('card-last-success').innerText = data.settings.last_success;
+                if(document.getElementById('set-market-period')) document.getElementById('set-market-period').innerText = data.settings.market_period;
 
-        // 3. 載入並渲染 JSON 數據
-        fetch('./data.json')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('last-update-time').innerText = '更新 ' + data.last_updated;
+                const badgeStyles = {
+                    success: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/50',
+                    warning: 'bg-amber-950/80 text-amber-400 border-amber-800/50',
+                    danger: 'bg-rose-950/80 text-rose-400 border-rose-800/50',
+                    neutral: 'bg-slate-800 text-slate-400 border-slate-700'
+                };
 
-                // 總覽
-                document.getElementById('main-taiex-price').innerText = data.index_trends.taiex.current;
-                document.getElementById('main-taiex-change').innerText = data.index_trends.taiex.change;
-                document.getElementById('main-inst-total').innerText = data.institutional.total;
-                document.getElementById('main-breadth-ratio').innerText = data.breadth.ratio;
-
-                // 廣度
-                document.getElementById('rising-cnt').innerText = data.breadth.rising + " 家";
-                document.getElementById('falling-cnt').innerText = data.breadth.falling + " 家";
-                document.getElementById('flat-cnt').innerText = data.breadth.flat + " 家";
-
-                // 法人
-                document.getElementById('foreign-val').innerText = data.institutional.foreign;
-                document.getElementById('trust-val').innerText = data.institutional.trust;
-                document.getElementById('prop-val').innerText = data.institutional.prop;
-
-                // 設定 (Setup 頁面)
-                if(data.settings) {
-                    document.getElementById('card-last-success').innerText = data.settings.last_success;
-                    document.getElementById('set-market-period').innerText = data.settings.market_period;
-
-                    const badgeStyles = {
-                        success: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/50',
-                        warning: 'bg-amber-950/80 text-amber-400 border-amber-800/50',
-                        danger: 'bg-rose-950/80 text-rose-400 border-rose-800/50',
-                        neutral: 'bg-slate-800 text-slate-400 border-slate-700'
-                    };
-
-                    document.getElementById('settings-table-body').innerHTML = data.settings.data_sources.map(s => `
+                const tbody = document.getElementById('settings-table-body');
+                if(tbody && data.settings.data_sources) {
+                    tbody.innerHTML = data.settings.data_sources.map(s => `
                         <tr class="hover:bg-slate-900/40 transition">
                             <td class="p-3 font-bold text-slate-200">${s.dataset}</td>
                             <td class="p-3 text-slate-400">${s.source}</td>
@@ -287,16 +297,19 @@
                             <td class="p-3 text-slate-300 font-mono">${s.date}</td>
                             <td class="p-3 text-slate-300 font-mono">${s.updated}</td>
                             <td class="p-3 text-right">
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold border ${badgeStyles[s.badge]}">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold border ${badgeStyles[s.badge] || badgeStyles.neutral}">
                                     ${s.status}
                                 </span>
                             </td>
                         </tr>
                     `).join('');
                 }
+            }
 
-                // 渲染 Chart.js 趨勢圖
-                new Chart(document.getElementById('chartIndexTrend'), {
+            // Chart.js 折線圖
+            const chartCanvas = document.getElementById('chartIndexTrend');
+            if (chartCanvas && data.index_trends) {
+                new Chart(chartCanvas, {
                     type: 'line',
                     data: {
                         labels: data.index_trends.history_dates,
@@ -304,8 +317,9 @@
                     },
                     options: { responsive: true, maintainAspectRatio: false }
                 });
-            })
-            .catch(err => console.error(err));
-    </script>
+            }
+        })
+        .catch(err => console.error("Data JSON Fetch Error:", err));
+</script>
 </body>
 </html>
