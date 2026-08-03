@@ -1,71 +1,172 @@
 {
-  "last_updated": "2026-08-03 06:10:37",
-  "status": "市場資料已連線 (TWSE API)",
-  "data_date": "2026/08/03",
-  "index_trends": {
-    "taiex": {
-      "current": "22,300.00",
-      "change": "+150.20 (+0.68%)"
+  "last_updated": "2026-08-03 06:16:53",
+  "market_sentiment": {
+    "vix": {
+      "value": "15.99",
+      "change": "-1.10 (-6.44%)",
+      "status": "中性 (Neutral)"
     },
-    "history_dates": [
-      "07/28",
-      "07/29",
-      "07/30",
-      "07/31",
-      "2026/08/03"
+    "bull_bear_ratio": "58% 牛 / 42% 熊 (偏多)",
+    "put_call_ratio": "0.85 (中性偏多)",
+    "health_score": 68.0
+  },
+  "global_indices": {
+    "hsi": {
+      "price": "25,899.19",
+      "change": "+14.76 (+0.06%)",
+      "raw_price": 25899.19
+    },
+    "hstech": {
+      "price": "4,848.75",
+      "change": "+19.53 (+0.40%)",
+      "raw_price": 4848.75
+    },
+    "sp500": {
+      "price": "7,489.72",
+      "change": "+52.09 (+0.70%)",
+      "raw_price": 7489.72
+    },
+    "nasdaq": {
+      "price": "25,373.85",
+      "change": "+251.65 (+1.00%)",
+      "raw_price": 25373.854
+    }
+  },
+  "market_breadth": {
+    "hk": {
+      "rising": 950,
+      "falling": 620,
+      "flat": 310,
+      "ratio": "1.53 (多方佔優)"
+    },
+    "us": {
+      "rising": 1820,
+      "falling": 1150,
+      "flat": 200,
+      "ratio": "1.58 (強勢)"
+    }
+  },
+  "sector_performance": [
+    {
+      "sector": "半導體 & 科技",
+      "hk_change": "+2.4%",
+      "us_change": "+1.8%",
+      "status": "領漲"
+    },
+    {
+      "sector": "非必要消費",
+      "hk_change": "+1.1%",
+      "us_change": "+0.5%",
+      "status": "溫和"
+    },
+    {
+      "sector": "金融",
+      "hk_change": "+0.3%",
+      "us_change": "-0.2%",
+      "status": "平盤"
+    },
+    {
+      "sector": "醫療健康",
+      "hk_change": "-0.8%",
+      "us_change": "-1.1%",
+      "status": "領跌"
+    },
+    {
+      "sector": "房地產 & 能源",
+      "hk_change": "-1.5%",
+      "us_change": "-0.9%",
+      "status": "走弱"
+    }
+  ],
+  "top_movers": {
+    "hk_gainers": [
+      {
+        "symbol": "0700.HK",
+        "name": "騰訊控股",
+        "price": "382.0",
+        "pct": "+3.2%"
+      },
+      {
+        "symbol": "9988.HK",
+        "name": "阿里巴巴",
+        "price": "78.5",
+        "pct": "+2.8%"
+      },
+      {
+        "symbol": "3690.HK",
+        "name": "美團",
+        "price": "118.0",
+        "pct": "+2.5%"
+      }
     ],
-    "taiex_prices": [
-      22000,
-      22100,
-      22050,
-      22200,
-      22300.0
-    ]
-  },
-  "breadth": {
-    "rising": 520,
-    "falling": 340,
-    "flat": 100,
-    "ratio": 1.53
-  },
-  "institutional": {
-    "foreign": "0.0 億",
-    "trust": "+360.2 億",
-    "prop": "-220.0 億",
-    "total": "+873.14 億"
-  },
-  "settings": {
-    "auto_sync": "開啟",
-    "market_period": "盤後即時 API",
-    "last_success": "2026-08-03 06:10:37",
-    "data_sources": [
+    "hk_losers": [
       {
-        "dataset": "加權指數 (TWSE)",
-        "source": "臺灣證券交易所 OpenAPI",
-        "type": "官方盤後 API",
-        "date": "2026/08/03",
-        "updated": "2026-08-03 06:10:37",
-        "status": "同步完成",
-        "badge": "success"
+        "symbol": "1024.HK",
+        "name": "快手",
+        "price": "45.2",
+        "pct": "-3.1%"
       },
       {
-        "dataset": "三大法人買賣超",
-        "source": "臺灣證券交易所 BFI82U",
-        "type": "官方盤後 API",
-        "date": "2026/08/03",
-        "updated": "2026-08-03 06:10:37",
-        "status": "同步完成",
-        "badge": "success"
+        "symbol": "2318.HK",
+        "name": "中國平安",
+        "price": "35.1",
+        "pct": "-2.4%"
+      }
+    ],
+    "us_gainers": [
+      {
+        "symbol": "NVDA",
+        "name": "NVIDIA",
+        "price": "125.40",
+        "pct": "+4.1%"
       },
       {
-        "dataset": "市場廣度 (漲跌家數)",
-        "source": "臺灣證券交易所 MI_INDEX",
-        "type": "官方盤後 API",
-        "date": "2026/08/03",
-        "updated": "2026-08-03 06:10:37",
-        "status": "同步完成",
-        "badge": "success"
+        "symbol": "AAPL",
+        "name": "Apple",
+        "price": "224.30",
+        "pct": "+1.9%"
+      }
+    ],
+    "us_losers": [
+      {
+        "symbol": "TSLA",
+        "name": "Tesla",
+        "price": "210.10",
+        "pct": "-2.8%"
       }
     ]
-  }
+  },
+  "live_news": [
+    {
+      "time": "15:30",
+      "tag": "港股",
+      "title": "恒生科技指數收漲逾 1%，科技龍頭股全線拉升。"
+    },
+    {
+      "time": "14:15",
+      "tag": "美聯儲",
+      "title": "聯儲局官員暗示將根據通脹數據評估降息節奏。"
+    },
+    {
+      "time": "11:00",
+      "tag": "宏觀",
+      "title": "中國 7 月製造業 PMI 數據公佈，基本符合市場預期。"
+    }
+  ],
+  "economic_events": [
+    {
+      "time": "20:30 (今日)",
+      "country": "🇺🇸 美國",
+      "event": "7月初請失業金人數",
+      "forecast": "23.5萬",
+      "actual": "待公佈"
+    },
+    {
+      "time": "22:00 (今日)",
+      "country": "🇺🇸 美國",
+      "event": "ISM 非製造業 PMI",
+      "forecast": "51.0",
+      "actual": "待公佈"
+    }
+  ]
 }
