@@ -22,16 +22,31 @@
 </head>
 <body class="h-screen flex overflow-hidden">
 
-    <!-- 左側邊欄 Navigation Sidebar -->
+    <!-- 🔒 登入驗證彈窗 (Modal) -->
+    <div id="login-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50">
+        <div class="card-bg p-8 rounded-2xl w-96 border border-slate-700 shadow-2xl text-center space-y-4">
+            <div class="bg-blue-600 text-white font-black text-xl px-3 py-1.5 rounded-lg inline-block mb-2">TW Pulse</div>
+            <h3 class="text-lg font-bold text-white">請先登入系統</h3>
+            <p class="text-xs text-slate-400">請輸入管理員密碼以存取機構級數據儀表板</p>
+            
+            <input type="password" id="login-pass" placeholder="預設密碼: admin123" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+            
+            <p id="login-error" class="text-xs text-rose-400 hidden">❌ 密碼錯誤，請重新輸入</p>
+            
+            <button onclick="handleLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-bold transition">
+                登入系統
+            </button>
+        </div>
+    </div>
+
+    <!-- 左側邊欄 Sidebar -->
     <aside class="w-64 sidebar-bg flex-shrink-0 hidden md:flex flex-col justify-between p-4">
         <div>
-            <!-- Header Logo -->
             <div class="flex items-center gap-3 px-2 py-3 mb-4">
                 <div class="bg-blue-600 text-white font-black text-lg px-2.5 py-1 rounded">TW Pulse</div>
                 <div class="text-[10px] text-slate-400 font-bold tracking-widest">MARKET INTELLIGENCE</div>
             </div>
 
-            <!-- 核心分頁導覽按鈕 -->
             <nav class="space-y-1 text-xs">
                 <button onclick="switchTab('tab-overview')" id="btn-tab-overview" class="nav-btn active w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-300">
                     <i class="fa-solid fa-table-cells-large w-4"></i> 總覽首頁
@@ -45,274 +60,132 @@
                 <button onclick="switchTab('tab-breadth')" id="btn-tab-breadth" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-400 hover:text-white">
                     <i class="fa-solid fa-chart-pie w-4"></i> 市場廣度
                 </button>
-                <button onclick="switchTab('tab-heatmap')" id="btn-tab-heatmap" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-fire w-4"></i> 產業熱力圖
-                </button>
                 <button onclick="switchTab('tab-inst')" id="btn-tab-inst" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-400 hover:text-white">
                     <i class="fa-solid fa-building-columns w-4"></i> 法人動向
                 </button>
-                <button onclick="switchTab('tab-global')" id="btn-tab-global" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-globe w-4"></i> 國際市場
-                </button>
-                <button onclick="switchTab('tab-afterhours')" id="btn-tab-afterhours" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-list-ol w-4"></i> 盤後數據
-                </button>
-                <button onclick="switchTab('tab-risk')" id="btn-tab-risk" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-shield-halved w-4"></i> 風險監控
-                </button>
-                
-                <!-- 設定頁面按鈕 (指向新分頁) -->
+
+                <!-- 設定 Setup 頁面按鈕 -->
                 <button onclick="switchTab('tab-settings')" id="btn-tab-settings" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded text-slate-400 hover:text-white mt-4 border-t border-slate-800/80 pt-3">
                     <i class="fa-solid fa-gear w-4"></i> 設定
                 </button>
             </nav>
         </div>
 
-        <!-- 底部登入狀態 -->
         <div class="border-t border-slate-800 pt-4 px-2 space-y-2 text-xs">
             <div class="flex items-center gap-2 text-emerald-400 font-semibold">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> 本機展示模式
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> 系統連線正常
             </div>
-            <button onclick="alert('已登出')" class="w-full text-left text-slate-500 hover:text-slate-300 transition">
-                <i class="fa-solid fa-right-from-bracket mr-1"></i> 登出
+            <!-- 真實登出按鈕 -->
+            <button onclick="handleLogout()" class="w-full text-left text-slate-500 hover:text-rose-400 transition">
+                <i class="fa-solid fa-right-from-bracket mr-1"></i> 登出系統
             </button>
         </div>
     </aside>
 
-    <!-- 主工作區 (Main Area) -->
+    <!-- 主內容區域 -->
     <div class="flex-1 flex flex-col overflow-hidden">
         
-        <!-- 頂部搜尋與同步狀態列 Header Bar -->
         <header class="h-14 border-b border-slate-800 px-6 flex items-center justify-between flex-shrink-0">
             <div class="flex items-center gap-3 text-xs">
                 <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                 <span class="text-emerald-400 font-bold" id="conn-status">市場資料已連線</span>
-                <span class="text-slate-500" id="last-update-time">更新 2026/08/01 23:57</span>
+                <span class="text-slate-500" id="last-update-time">更新中...</span>
             </div>
-            <div class="flex items-center gap-4">
-                <div class="relative w-80">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
-                    <input type="text" placeholder="搜尋股票代號、名稱或指標" class="w-full bg-slate-900 border border-slate-800 rounded-lg pl-8 pr-4 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
-                </div>
-                <button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-rotate"></i> 同步資料
-                </button>
-            </div>
+            <button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate"></i> 整理重新整理
+            </button>
         </header>
 
-        <!-- 頁面主要內容區 (可滾動) -->
         <main class="flex-1 overflow-y-auto p-6 space-y-6">
 
             <!-- 1. 總覽首頁 -->
             <section id="tab-overview" class="tab-content active space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="card-bg p-5 rounded-xl">
-                        <h3 class="text-xs text-slate-400 font-bold mb-2">市場健康度</h3>
-                        <p class="text-3xl font-extrabold text-white">75.0 <span class="text-xs text-emerald-400 font-normal">偏強</span></p>
+                        <h3 class="text-xs text-slate-400 font-bold mb-2">加權指數當前價</h3>
+                        <p class="text-3xl font-extrabold text-white" id="main-taiex-price">--</p>
+                        <span class="text-xs text-emerald-400 mt-1 block" id="main-taiex-change">--</span>
                     </div>
                     <div class="card-bg p-5 rounded-xl">
-                        <h3 class="text-xs text-slate-400 font-bold mb-2">三大法人合計</h3>
-                        <p class="text-3xl font-extrabold text-emerald-400">+808.9 億</p>
+                        <h3 class="text-xs text-slate-400 font-bold mb-2">三大法人買賣超金額</h3>
+                        <p class="text-3xl font-extrabold text-emerald-400" id="main-inst-total">--</p>
                     </div>
                     <div class="card-bg p-5 rounded-xl">
-                        <h3 class="text-xs text-slate-400 font-bold mb-2">多空家數比</h3>
-                        <p class="text-3xl font-extrabold text-white">8.10 <span class="text-xs text-emerald-400 font-normal">偏多</span></p>
+                        <h3 class="text-xs text-slate-400 font-bold mb-2">全市場上漲/下跌比率</h3>
+                        <p class="text-3xl font-extrabold text-white" id="main-breadth-ratio">--</p>
                     </div>
                 </div>
             </section>
 
             <!-- 2. 市場脈動 -->
             <section id="tab-pulse" class="tab-content space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="card-bg p-5 rounded-xl">
-                        <h3 class="text-sm font-bold text-white mb-4">市場脈動總覽</h3>
-                        <div class="flex items-center gap-6">
-                            <div class="text-center">
-                                <span class="text-4xl font-black text-white">75.0</span>
-                                <span class="text-xs block text-emerald-400 mt-1">偏強</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4 text-xs flex-1">
-                                <div class="bg-slate-900/60 p-3 rounded border border-slate-800">
-                                    <span class="text-slate-500">市場健康</span>
-                                    <p class="text-lg font-bold text-white">66.4 <span class="text-xs text-amber-400">偏強</span></p>
-                                </div>
-                                <div class="bg-slate-900/60 p-3 rounded border border-slate-800">
-                                    <span class="text-slate-500">市場風險</span>
-                                    <p class="text-lg font-bold text-white">33.6 <span class="text-xs text-rose-400">風險偏低</span></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-bg p-5 rounded-xl">
-                        <h3 class="text-sm font-bold text-white mb-2">分數歷史</h3>
-                        <div class="h-32"><canvas id="chartPulseHistory"></canvas></div>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-                    <div class="card-bg p-5 rounded-xl space-y-3">
-                        <h4 class="font-bold text-emerald-400 border-b border-slate-800 pb-2">正面因素</h4>
-                        <div id="pulse-pos-list" class="space-y-2"></div>
-                    </div>
-                    <div class="card-bg p-5 rounded-xl space-y-3">
-                        <h4 class="font-bold text-rose-400 border-b border-slate-800 pb-2">風險因素</h4>
-                        <div id="pulse-risk-list" class="space-y-2"></div>
-                    </div>
+                <div class="card-bg p-5 rounded-xl">
+                    <h3 class="text-sm font-bold text-white mb-4">市場健康指標</h3>
+                    <div id="pulse-pos-list" class="space-y-2 text-xs"></div>
                 </div>
             </section>
 
             <!-- 3. 指數走勢 -->
             <section id="tab-index" class="tab-content space-y-6">
                 <div class="card-bg p-5 rounded-xl">
-                    <div class="flex justify-between items-center mb-4">
-                        <div>
-                            <span class="text-xs text-slate-500 block">發行量加權股價指數</span>
-                            <span class="text-3xl font-bold text-white">43,119.75</span>
-                            <span class="text-xs text-emerald-400 ml-2">+3186.45 (+7.98%)</span>
-                        </div>
-                    </div>
+                    <h3 class="text-xs font-bold text-white mb-3">台灣加權指數歷史趨勢</h3>
                     <div class="h-64"><canvas id="chartIndexTrend"></canvas></div>
-                </div>
-                <div class="card-bg p-5 rounded-xl overflow-x-auto">
-                    <h4 class="text-xs font-bold text-white mb-3">指數歷史資料 (臺灣證券交易所 OpenAPI)</h4>
-                    <table class="w-full text-xs text-left">
-                        <thead class="bg-slate-900 text-slate-400">
-                            <tr><th class="p-2">日期</th><th class="p-2">開盤</th><th class="p-2">最高</th><th class="p-2">最低</th><th class="p-2">收盤</th><th class="p-2">漲跌幅</th></tr>
-                        </thead>
-                        <tbody id="idx-table-body" class="divide-y divide-slate-800/60"></tbody>
-                    </table>
                 </div>
             </section>
 
             <!-- 4. 市場廣度 -->
             <section id="tab-breadth" class="tab-content space-y-6">
-                <div class="grid grid-cols-4 gap-4 text-xs">
-                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">上漲家數</span><p class="text-xl font-bold text-emerald-400 mt-1">3,766 家</p></div>
-                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">下跌家數</span><p class="text-xl font-bold text-rose-400 mt-1">465 家</p></div>
-                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">平盤家數</span><p class="text-xl font-bold text-yellow-400 mt-1">173 家</p></div>
-                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">多空比</span><p class="text-xl font-bold text-white mt-1">8.1</p></div>
-                </div>
-                <div class="card-bg p-5 rounded-xl">
-                    <h4 class="text-xs font-bold text-white mb-3">市場廣度趨勢 (上漲與下跌家數歷史)</h4>
-                    <div class="h-64"><canvas id="chartBreadthTrend"></canvas></div>
+                <div class="grid grid-cols-3 gap-4 text-xs">
+                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">今日上漲家數</span><p class="text-xl font-bold text-emerald-400 mt-1" id="rising-cnt">0 家</p></div>
+                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">今日下跌家數</span><p class="text-xl font-bold text-rose-400 mt-1" id="falling-cnt">0 家</p></div>
+                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">平盤家數</span><p class="text-xl font-bold text-yellow-400 mt-1" id="flat-cnt">0 家</p></div>
                 </div>
             </section>
 
-            <!-- 5. 產業熱力圖 -->
-            <section id="tab-heatmap" class="tab-content space-y-6">
-                <h3 class="text-sm font-bold text-white">產業資金熱力圖</h3>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="heatmap-grid"></div>
-            </section>
-
-            <!-- 6. 法人動向 -->
+            <!-- 5. 法人動向 -->
             <section id="tab-inst" class="tab-content space-y-6">
-                <div class="grid grid-cols-4 gap-4 text-xs">
-                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">外資</span><p class="text-lg font-bold text-emerald-400 mt-1">+602.4 億</p></div>
-                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">投信</span><p class="text-lg font-bold text-emerald-400 mt-1">+363.2 億</p></div>
-                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">自營商</span><p class="text-lg font-bold text-rose-400 mt-1">-156.7 億</p></div>
-                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">合計</span><p class="text-xl font-bold text-emerald-400 mt-1">+808.9 億</p></div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-                    <div class="card-bg p-5 rounded-xl">
-                        <h4 class="font-bold text-emerald-400 mb-3">法人買超排行 Top 5</h4>
-                        <div id="inst-buy-list" class="space-y-2"></div>
-                    </div>
-                    <div class="card-bg p-5 rounded-xl">
-                        <h4 class="font-bold text-rose-400 mb-3">法人賣超排行 Top 5</h4>
-                        <div id="inst-sell-list" class="space-y-2"></div>
-                    </div>
+                <div class="grid grid-cols-3 gap-4 text-xs">
+                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">外資</span><p class="text-lg font-bold text-emerald-400 mt-1" id="foreign-val">--</p></div>
+                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">投信</span><p class="text-lg font-bold text-emerald-400 mt-1" id="trust-val">--</p></div>
+                    <div class="card-bg p-4 rounded-xl"><span class="text-slate-500">自營商</span><p class="text-lg font-bold text-rose-400 mt-1" id="prop-val">--</p></div>
                 </div>
             </section>
 
-            <!-- 7. 國際市場 -->
-            <section id="tab-global" class="tab-content space-y-6">
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="global-grid"></div>
-            </section>
-
-            <!-- 8. 盤後數據 -->
-            <section id="tab-afterhours" class="tab-content space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-                    <div class="card-bg p-5 rounded-xl">
-                        <h4 class="font-bold text-emerald-400 mb-3">漲幅排行</h4>
-                        <div id="after-gainers-list" class="space-y-2"></div>
-                    </div>
-                    <div class="card-bg p-5 rounded-xl">
-                        <h4 class="font-bold text-rose-400 mb-3">跌幅排行</h4>
-                        <div id="after-losers-list" class="space-y-2"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 9. 風險監控 -->
-            <section id="tab-risk" class="tab-content space-y-6">
-                <div class="card-bg p-5 rounded-xl">
-                    <h4 class="text-xs font-bold text-white mb-4">風險事件清單 (僅顯示高風險警訊)</h4>
-                    <div id="risk-events-container" class="space-y-3 text-xs"></div>
-                </div>
-            </section>
-
-            <!-- 10. 設定 (Setup Page - 完全對照用戶截圖) -->
+            <!-- 6. 設定 (Setup 頁面) -->
             <section id="tab-settings" class="tab-content space-y-6">
-                <!-- 頁面標題列 -->
                 <div>
                     <div class="flex items-center gap-3">
-                        <h2 class="text-xl font-bold text-white">設定</h2>
-                        <span class="text-xs text-slate-400">顯示偏好、自動同步與各資料來源狀態。</span>
-                    </div>
-                    <div class="mt-2 inline-flex items-center gap-2 px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-[11px]">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <span class="text-emerald-400 font-bold">市場資料已連線</span>
-                        <span class="text-slate-500">官方盤後資料</span>
-                        <span class="text-slate-500">資料日期 <span id="set-data-date">2026/07/31</span></span>
-                        <span class="text-slate-500">更新 <span id="set-update-time">08/01 23:57</span></span>
+                        <h2 class="text-xl font-bold text-white">設定 (Setup)</h2>
+                        <span class="text-xs text-slate-400">顯示偏好、自動同步與 API 數據來源狀態監控。</span>
                     </div>
                 </div>
 
-                <!-- 上方 3 大狀態卡片 -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="card-bg p-5 rounded-xl space-y-1">
-                        <span class="text-xs text-slate-500">自動同步</span>
-                        <p class="text-2xl font-bold text-white flex items-center justify-between">
-                            開啟
-                            <span class="text-xs px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-800/50 font-normal">市場資料已連線</span>
-                        </p>
+                        <span class="text-xs text-slate-500">自動同步狀態</span>
+                        <p class="text-2xl font-bold text-white">開啟 (GitHub Actions)</p>
                     </div>
                     <div class="card-bg p-5 rounded-xl space-y-1">
-                        <span class="text-xs text-slate-500">市場時段</span>
-                        <p class="text-2xl font-bold text-white">非交易日</p>
-                        <span class="text-xs text-slate-500 block">官方盤後資料</span>
+                        <span class="text-xs text-slate-500">當前交易時段</span>
+                        <p class="text-2xl font-bold text-white" id="set-market-period">盤後即時 API</p>
                     </div>
                     <div class="card-bg p-5 rounded-xl space-y-1">
-                        <span class="text-xs text-slate-500">最後成功更新</span>
-                        <p class="text-2xl font-bold text-white" id="card-last-success">08/01 23:57</p>
+                        <span class="text-xs text-slate-500">最後成功同步時間</span>
+                        <p class="text-2xl font-bold text-white" id="card-last-success">--</p>
                     </div>
                 </div>
 
-                <!-- 帳戶與顯示偏好區塊 -->
-                <div class="card-bg p-5 rounded-xl flex items-center justify-between">
-                    <div>
-                        <h3 class="text-sm font-bold text-white">帳戶與顯示偏好</h3>
-                        <p class="text-xs text-slate-400 mt-1">顯示比例可由頁面 Header 的顯示大小選單調整；自動同步由後端集中執行，不會讓每位使用者重複呼叫 Provider。</p>
-                    </div>
-                    <button onclick="alert('開啟帳戶設定')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-                        開啟帳戶設定
-                    </button>
-                </div>
-
-                <!-- 資料來源狀態表格區塊 -->
                 <div class="card-bg p-5 rounded-xl space-y-3">
-                    <div>
-                        <h3 class="text-sm font-bold text-white">資料來源狀態</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">一般畫面已將內部 dataset key 轉成可閱讀中文名稱</p>
-                    </div>
+                    <h3 class="text-sm font-bold text-white">API 資料來源與連線狀態監控</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs text-left">
                             <thead class="bg-slate-900/80 text-slate-400 border-b border-slate-800">
                                 <tr>
                                     <th class="p-3 font-semibold">資料集</th>
-                                    <th class="p-3 font-semibold">來源</th>
+                                    <th class="p-3 font-semibold">來源 Provider</th>
                                     <th class="p-3 font-semibold">資料類型</th>
                                     <th class="p-3 font-semibold">資料日期</th>
-                                    <th class="p-3 font-semibold">最後成功更新</th>
+                                    <th class="p-3 font-semibold">最後更新</th>
                                     <th class="p-3 font-semibold text-right">狀態</th>
                                 </tr>
                             </thead>
@@ -325,9 +198,44 @@
         </main>
     </div>
 
-    <!-- JS Logic -->
+    <!-- ⚙️ JavaScript邏輯 -->
     <script>
-        // 切換分頁邏輯
+        // 🔐 1. Auth Authentication 身份認證邏輯
+        function checkAuth() {
+            const isAuth = localStorage.getItem('tw_pulse_auth');
+            const modal = document.getElementById('login-modal');
+            if (isAuth === 'true') {
+                modal.classList.add('hidden');
+            } else {
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function handleLogin() {
+            const pass = document.getElementById('login-pass').value;
+            const errorMsg = document.getElementById('login-error');
+            
+            // 預設登入密碼設為 admin123
+            if (pass === 'admin123') {
+                localStorage.setItem('tw_pulse_auth', 'true');
+                errorMsg.classList.add('hidden');
+                checkAuth();
+            } else {
+                errorMsg.classList.remove('hidden');
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('確定要登出 TW Pulse 系統嗎？')) {
+                localStorage.removeItem('tw_pulse_auth');
+                checkAuth(); // 鎖定畫面
+            }
+        }
+
+        // 初始化登入檢查
+        checkAuth();
+
+        // 2. Tab Navigation 分頁切換
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -337,16 +245,33 @@
             if(activeBtn) activeBtn.classList.add('active');
         }
 
-        // 初始化資料渲染
+        // 3. 載入並渲染 JSON 數據
         fetch('./data.json')
             .then(res => res.json())
             .then(data => {
                 document.getElementById('last-update-time').innerText = '更新 ' + data.last_updated;
 
-                // 渲染設定頁面數據 (Settings Data)
+                // 總覽
+                document.getElementById('main-taiex-price').innerText = data.index_trends.taiex.current;
+                document.getElementById('main-taiex-change').innerText = data.index_trends.taiex.change;
+                document.getElementById('main-inst-total').innerText = data.institutional.total;
+                document.getElementById('main-breadth-ratio').innerText = data.breadth.ratio;
+
+                // 廣度
+                document.getElementById('rising-cnt').innerText = data.breadth.rising + " 家";
+                document.getElementById('falling-cnt').innerText = data.breadth.falling + " 家";
+                document.getElementById('flat-cnt').innerText = data.breadth.flat + " 家";
+
+                // 法人
+                document.getElementById('foreign-val').innerText = data.institutional.foreign;
+                document.getElementById('trust-val').innerText = data.institutional.trust;
+                document.getElementById('prop-val').innerText = data.institutional.prop;
+
+                // 設定 (Setup 頁面)
                 if(data.settings) {
                     document.getElementById('card-last-success').innerText = data.settings.last_success;
-                    
+                    document.getElementById('set-market-period').innerText = data.settings.market_period;
+
                     const badgeStyles = {
                         success: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/50',
                         warning: 'bg-amber-950/80 text-amber-400 border-amber-800/50',
@@ -370,223 +295,15 @@
                     `).join('');
                 }
 
-                // 1. 市場脈動
-                if(data.pulse) {
-                    document.getElementById('pulse-pos-list').innerHTML = data.pulse.positive_factors.map(f => `
-                        <div class="flex justify-between p-2 rounded bg-slate-900/40">
-                            <div><span class="font-bold text-white block">${f.name}</span><span class="text-slate-500">${f.desc}</span></div>
-                            <span class="text-emerald-400 font-bold">${f.score}</span>
-                        </div>
-                    `).join('');
-                    document.getElementById('pulse-risk-list').innerHTML = data.pulse.risk_factors.map(f => `
-                        <div class="flex justify-between p-2 rounded bg-slate-900/40">
-                            <div><span class="font-bold text-white block">${f.name}</span><span class="text-slate-500">${f.desc}</span></div>
-                            <span class="text-rose-400 font-bold">${f.score}</span>
-                        </div>
-                    `).join('');
-                }
-
-                // 2. 指數歷史
-                if(data.index_trends) {
-                    document.getElementById('idx-table-body').innerHTML = data.index_trends.table.map(row => `
-                        <tr>
-                            <td class="p-2 text-slate-300">${row.date}</td>
-                            <td class="p-2">${row.open}</td>
-                            <td class="p-2">${row.high}</td>
-                            <td class="p-2">${row.low}</td>
-                            <td class="p-2 font-bold text-white">${row.close}</td>
-                            <td class="p-2 font-bold ${row.pct.startsWith('+') ? 'text-emerald-400' : 'text-rose-400'}">${row.pct}</td>
-                        </tr>
-                    `).join('');
-
-                    new Chart(document.getElementById('chartIndexTrend'), {
-                        type: 'line',
-                        data: {
-                            labels: data.index_trends.history_dates,
-                            datasets: [{ label: '加權指數', data: data.index_trends.taiex_prices, borderColor: '#3b82f6', tension: 0.3, fill: false }]
-                        },
-                        options: { responsive: true, maintainAspectRatio: false }
-                    });
-                }
-
-                // 3. 市場廣度
-                if(data.breadth) {
-                    new Chart(document.getElementById('chartBreadthTrend'), {
-                        type: 'line',
-                        data: {
-                            labels: ['07/15', '07/16', '07/17', '07/21', '07/22', '07/28', '07/29', '07/30', '07/31'],
-                            datasets: [
-                                { label: '上漲家數', data: data.breadth.rising_history, borderColor: '#10b981', tension: 0.2 },
-                                { label: '下跌家數', data: data.breadth.falling_history, borderColor: '#f43f5e', tension: 0.2 }
-                            ]
-                        },
-                        options: { responsive: true, maintainAspectRatio: false }
-                    });
-                }
-
-                // 4. 產業熱力圖
-                if(data.sectors_heatmap) {
-                    document.getElementById('heatmap-grid').innerHTML = data.sectors_heatmap.map(s => `
-                        <div class="${s.bg} p-4 rounded-xl text-white">
-                            <span class="font-bold block">${s.name}</span>
-                            <span class="text-lg font-black block mt-1">${s.pct}</span>
-                            <span class="text-[10px] opacity-80 block mt-1">${s.status} ${s.amount}</span>
-                        </div>
-                    `).join('');
-                }
-
-                // 5. 法人動向
-                if(data.institutional) {
-                    document.getElementById('inst-buy-list').innerHTML = data.institutional.top_buy.map(i => `
-                        <div class="flex justify-between p-2 rounded bg-slate-900/50">
-                            <span>${i.rank}. ${i.name} (${i.code})</span>
-                            <span class="text-emerald-400 font-bold">${i.shares}</span>
-                        </div>
-                    `).join('');
-                    document.getElementById('inst-sell-list').innerHTML = data.institutional.top_sell.map(i => `
-                        <div class="flex justify-between p-2 rounded bg-slate-900/50">
-                            <span>${i.rank}. ${i.name} (${i.code})</span>
-                            <span class="text-rose-400 font-bold">${i.shares}</span>
-                        </div>
-                    `).join('');
-                }
-
-                // 6. 國際市場
-                if(data.global_markets) {
-                    document.getElementById('global-grid').innerHTML = data.global_markets.map(g => `
-                        <div class="card-bg p-4 rounded-xl">
-                            <span class="text-xs text-slate-500 block">${g.title}</span>
-                            <span class="text-xl font-bold text-white block mt-1">${g.price}</span>
-                            <span class="text-xs font-bold ${g.is_pos ? 'text-emerald-400' : 'text-rose-400'}">${g.pct}</span>
-                        </div>
-                    `).join('');
-                }
-<!-- 登入彈窗 (Modal) -->
-<div id="login-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden">
-    <div class="card-bg p-8 rounded-2xl w-96 border border-slate-700 shadow-2xl text-center space-y-4">
-        <div class="bg-blue-600 text-white font-black text-xl px-3 py-1.5 rounded-lg inline-block mb-2">TW Pulse</div>
-        <h3 class="text-lg font-bold text-white">請先登入系統</h3>
-        <p class="text-xs text-slate-400">請輸入管理員密碼以存取機構級數據頁面</p>
-        
-        <input type="password" id="login-pass" placeholder="輸入密碼 (預設: admin123)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
-        
-        <p id="login-error" class="text-xs text-rose-400 hidden">❌ 密碼錯誤，請重新輸入</p>
-        
-        <button onclick="handleLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-bold transition">
-            登入系統
-        </button>
-    </div>
-</div>
-
-<script>
-    // 1. 檢查登入狀態 (Auth Check)
-    function checkAuth() {
-        const isAuthenticated = localStorage.getItem('tw_pulse_auth');
-        const modal = document.getElementById('login-modal');
-        if (isAuthenticated === 'true') {
-            modal.classList.add('hidden');
-        } else {
-            modal.classList.remove('hidden');
-        }
-    }
-
-    // 2. 真實登入處理 (Login Handler)
-    function handleLogin() {
-        const pass = document.getElementById('login-pass').value;
-        const errorMsg = document.getElementById('login-error');
-        
-        // 預設密碼設為 admin123 (可自行修改)
-        if (pass === 'admin123') {
-            localStorage.setItem('tw_pulse_auth', 'true');
-            errorMsg.classList.add('hidden');
-            checkAuth();
-        } else {
-            errorMsg.classList.remove('hidden');
-        }
-    }
-
-    // 3. 真實登出處理 (Logout Handler)
-    function handleLogout() {
-        if (confirm('確定要登出 TW Pulse 系統嗎？')) {
-            localStorage.removeItem('tw_pulse_auth'); // 清除登入 Token
-            checkAuth(); // 重新觸發認證檢查，鎖定畫面
-        }
-    }
-
-    // 頁面初始化執行認證檢查
-    checkAuth();
-
-    // --- 原有的分頁與資料載入邏輯 ---
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-        
-        document.getElementById(tabId).classList.add('active');
-        const activeBtn = document.getElementById('btn-' + tabId);
-        if(activeBtn) activeBtn.classList.add('active');
-    }
-
-    fetch('./data.json')
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById('last-update-time').innerText = '更新 ' + data.last_updated;
-
-            if(data.settings) {
-                document.getElementById('card-last-success').innerText = data.settings.last_success;
-                const badgeStyles = {
-                    success: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/50',
-                    warning: 'bg-amber-950/80 text-amber-400 border-amber-800/50',
-                    danger: 'bg-rose-950/80 text-rose-400 border-rose-800/50',
-                    neutral: 'bg-slate-800 text-slate-400 border-slate-700'
-                };
-
-                document.getElementById('settings-table-body').innerHTML = data.settings.data_sources.map(s => `
-                    <tr class="hover:bg-slate-900/40 transition">
-                        <td class="p-3 font-bold text-slate-200">${s.dataset}</td>
-                        <td class="p-3 text-slate-400">${s.source}</td>
-                        <td class="p-3 text-slate-400">${s.type}</td>
-                        <td class="p-3 text-slate-300 font-mono">${s.date}</td>
-                        <td class="p-3 text-slate-300 font-mono">${s.updated}</td>
-                        <td class="p-3 text-right">
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold border ${badgeStyles[s.badge]}">
-                                ${s.status}
-                            </span>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-        })
-        .catch(err => console.error(err));
-</script>
-                // 7. 盤後數據
-                if(data.after_hours) {
-                    document.getElementById('after-gainers-list').innerHTML = data.after_hours.gainers.map(a => `
-                        <div class="flex justify-between p-2 rounded bg-slate-900/50">
-                            <span>${a.rank}. ${a.name} (${a.code})</span>
-                            <span class="text-emerald-400 font-bold">${a.pct}</span>
-                        </div>
-                    `).join('');
-                    document.getElementById('after-losers-list').innerHTML = data.after_hours.losers.map(a => `
-                        <div class="flex justify-between p-2 rounded bg-slate-900/50">
-                            <span>${a.rank}. ${a.name} (${a.code})</span>
-                            <span class="text-rose-400 font-bold">${a.pct}</span>
-                        </div>
-                    `).join('');
-                }
-
-                // 8. 風險事件
-                if(data.risk_events) {
-                    document.getElementById('risk-events-container').innerHTML = data.risk_events.map(r => `
-                        <div class="p-3 rounded bg-slate-900/60 border ${r.color} flex justify-between items-center">
-                            <div>
-                                <span class="text-slate-400 text-[10px] block">${r.time} • ${r.scope}</span>
-                                <span class="font-bold text-white">${r.event}</span>
-                                <p class="text-slate-400 mt-0.5">${r.desc}</p>
-                            </div>
-                            <span class="px-2 py-1 rounded text-[10px] font-bold ${r.level === '高' ? 'bg-rose-500/20 text-rose-400' : 'bg-yellow-500/20 text-yellow-400'}">重要程度: ${r.level}</span>
-                        </div>
-                    `).join('');
-                }
+                // 渲染 Chart.js 趨勢圖
+                new Chart(document.getElementById('chartIndexTrend'), {
+                    type: 'line',
+                    data: {
+                        labels: data.index_trends.history_dates,
+                        datasets: [{ label: '加權指數', data: data.index_trends.taiex_prices, borderColor: '#3b82f6', tension: 0.3 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
             })
             .catch(err => console.error(err));
     </script>
