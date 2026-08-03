@@ -1,170 +1,31 @@
-import json
-import os
-from datetime import datetime, timedelta
+name: Daily Scraper & Build
 
-def generate_history_dates(days=10):
-    today = datetime.now()
-    return [(today - timedelta(days=i)).strftime("%Y/%m/%d") for i in range(days-1, -1, -1)]
+on:
+  schedule:
+    - cron: '0 16 * * *' # 每天自動執行
+  workflow_dispatch: # 👈 就是這行！必須存在才會出現 Run workflow 按鈕
 
-def main():
-    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    dates = generate_history_dates(10)
-    print(f"[{now_str}] 正在生成 TW Pulse 完整 9 大分頁 (含系統設定) 數據庫...")
+permissions:
+  contents: write
 
-    dashboard_data = {
-        "last_updated": now_str,
-        "status": "市場資料已連線 23:57:52",
-        "data_date": "2026/07/31",
-        
-        # 1. 市場脈動 (Pulse & Factors)
-        "pulse": {
-            "health_score": 75.0,
-            "health_level": "偏強",
-            "risk_score": 33.6,
-            "risk_level": "風險偏低",
-            "positive_score": 53.6,
-            "data_completeness": "70%",
-            "positive_factors": [
-                {"name": "市場廣度", "desc": "上漲家數與漲跌比均高於正面門檻。", "score": "+20.0 分"},
-                {"name": "三大法人", "desc": "法人合計買超", "score": "+20.0 分"},
-                {"name": "國際市場", "desc": "可用國際指標中有 4 項上漲", "score": "+6.7 分"},
-                {"name": "加權指數趨勢", "desc": "當日動能為正；均線歷史尚未累積完整", "score": "+3.8 分"},
-                {"name": "櫃買指數趨勢", "desc": "當日動能為正；均線歷史尚未累積完整", "score": "+2.5 分"},
-                {"name": "產業資金動態", "desc": "符合門檻產業：綠能、金融", "score": "+6.0 分"}
-            ],
-            "risk_factors": [
-                {"name": "產業集中度風險", "desc": "市場資金集中於少數產業，產業輪動廣度不佳", "score": "14.3 分"},
-                {"name": "三大法人風險", "desc": "上市櫃法人合計 808.9 億元", "score": "10.0 分"},
-                {"name": "指數趨勢風險", "desc": "兩指數平均漲跌 3.18%", "score": "5.2 分"},
-                {"name": "市場廣度", "desc": "偏多", "score": "4.1 分"}
-            ]
-        },
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-        # 2. 指數走勢歷史 (Index Trends)
-        "index_trends": {
-            "taiex": {"current": "43,119.75", "change": "+3186.45 (+7.98%)", "open": "41,610.41", "high": "43,214.36", "low": "41,610.41", "close": "39,933.30"},
-            "tpex": {"current": "347.85", "change": "+21.62 (+6.63%)"},
-            "history_dates": dates,
-            "taiex_prices": [39500, 39800, 40200, 39900, 40500, 41200, 41000, 39933, 41610, 43119],
-            "table": [
-                {"date": dates[9], "open": "41,610.41", "high": "43,214.36", "low": "41,610.41", "close": "43,119.75", "pct": "+7.98%"},
-                {"date": dates[8], "open": "40,048.94", "high": "41,155.42", "low": "39,404.65", "close": "39,933.30", "pct": "-0.28%"},
-                {"date": dates[7], "open": "41,491.48", "high": "41,698.39", "low": "39,384.85", "close": "40,039.18", "pct": "-3.49%"},
-                {"date": dates[6], "open": "43,221.93", "high": "43,221.93", "low": "41,565.00", "close": "41,603.36", "pct": "-4.65%"}
-            ]
-        },
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
 
-        # 3. 市場廣度 (Breadth Trends)
-        "breadth": {
-            "rising": 3766, "falling": 465, "flat": 173, "ratio": 8.1,
-            "rising_history": [1533, 1915, 453, 4586, 4692, 139, 995, 1599, 3766],
-            "falling_history": [295, 3791, 4426, 1204, 1444, 1143, 4606, 3621, 465],
-            "history_table": [
-                {"date": dates[9], "rising": 3766, "falling": 465, "flat": 173, "ratio": 8.10},
-                {"date": dates[8], "rising": 1599, "falling": 3621, "flat": 434, "ratio": 0.44},
-                {"date": dates[7], "rising": 995, "falling": 4606, "flat": 224, "ratio": 0.22},
-                {"date": dates[6], "rising": 139, "falling": 1143, "flat": 91, "ratio": 0.12}
-            ]
-        },
+      - name: Run Scraper Script
+        run: python scraper.py
 
-        # 4. 產業熱力圖 (Sector Heatmap)
-        "sectors_heatmap": [
-            {"name": "半導體", "pct": "+7.03%", "amount": "+794.3 億元", "heat": 100, "status": "強勢流入", "bg": "bg-red-600"},
-            {"name": "綠能", "pct": "+3.35%", "amount": "+1.8 億元", "heat": 100, "status": "強勢流入", "bg": "bg-red-600"},
-            {"name": "金融", "pct": "+5.00%", "amount": "+3.4 億元", "heat": 100, "status": "強勢流入", "bg": "bg-red-600"},
-            {"name": "電子零組件", "pct": "+5.86%", "amount": "+123.2 億元", "heat": 100, "status": "強勢流入", "bg": "bg-red-600"},
-            {"name": "營建", "pct": "+1.51%", "amount": "+1.6 億元", "heat": 68, "status": "流入", "bg": "bg-red-700/80"},
-            {"name": "觀光", "pct": "+1.19%", "amount": "+0.6 億元", "heat": 65, "status": "流入", "bg": "bg-red-700/80"},
-            {"name": "生技", "pct": "+0.87%", "amount": "+16.3 億元", "heat": 58, "status": "中性", "bg": "bg-red-800/60"},
-            {"name": "航運", "pct": "+0.62%", "amount": "+0.3 億元", "heat": 46, "status": "中性", "bg": "bg-red-900/40"}
-        ],
-
-        # 5. 法人動向 (Institutional Flows)
-        "institutional": {
-            "foreign": "+602.4 億元", "trust": "+363.2 億元", "prop": "-156.7 億元", "total": "+808.9 億元",
-            "trend_history": [100, 250, -180, 420, 380, 210, 550, 808.9],
-            "top_buy": [
-                {"rank": 1, "code": "0050", "name": "元大台灣50", "shares": "91,840,386 股"},
-                {"rank": 2, "code": "2883", "name": "凱基金", "shares": "57,936,047 股"},
-                {"rank": 3, "code": "2317", "name": "鴻海", "shares": "56,378,231 股"},
-                {"rank": 4, "code": "2887", "name": "台新新光金", "shares": "51,180,587 股"},
-                {"rank": 5, "code": "2618", "name": "長榮航", "shares": "42,747,309 股"}
-            ],
-            "top_sell": [
-                {"rank": 1, "code": "2303", "name": "聯電", "shares": "-21,603,409 股"},
-                {"rank": 2, "code": "5483", "name": "中美晶", "shares": "-21,513,116 股"},
-                {"rank": 3, "code": "1301", "name": "台塑", "shares": "-14,167,290 股"},
-                {"rank": 4, "code": "1718", "name": "中纖", "shares": "-11,708,235 股"},
-                {"rank": 5, "code": "6116", "name": "彩晶", "shares": "-8,837,424 股"}
-            ]
-        },
-
-        # 6. 國際市場 (Global Markets)
-        "global_markets": [
-            {"title": "Dow Jones", "price": "52,485.03", "pct": "+0.53%", "is_pos": True},
-            {"title": "S&P 500", "price": "7,489.72", "pct": "+0.70%", "is_pos": True},
-            {"title": "Nasdaq", "price": "25,373.85", "pct": "+1.00%", "is_pos": True},
-            {"title": "美元指數 (廣義)", "price": "120.71", "pct": "-0.16%", "is_pos": False},
-            {"title": "美國十年期公債殖利率", "price": "4.68", "pct": "+0.21%", "is_pos": True},
-            {"title": "WTI 原油", "price": "84.25", "pct": "-8.16%", "is_pos": False}
-        ],
-
-        # 7. 盤後數據 (After-hours Gainers/Losers)
-        "after_hours": {
-            "gainers": [
-                {"rank": 8, "code": "00990A", "name": "主動元大AI新經濟", "pct": "+13.99%"},
-                {"rank": 9, "code": "00954", "name": "中信日本半導體", "pct": "+12.69%"},
-                {"rank": 10, "code": "00951", "name": "台新日本半導體", "pct": "+12.42%"},
-                {"rank": 11, "code": "00911", "name": "兆豐洲際半導體", "pct": "+11.01%"},
-                {"rank": 12, "code": "00830", "name": "國泰費城半導體", "pct": "+10.74%"},
-                {"rank": 13, "code": "00876", "name": "元大全球5G", "pct": "+10.61%"},
-                {"rank": 14, "code": "0050", "name": "元大台灣50", "pct": "+10.00%"}
-            ],
-            "losers": [
-                {"rank": 1, "code": "6166", "name": "凌華", "pct": "-9.96%"},
-                {"rank": 2, "code": "00686R", "name": "群益臺灣加權反1", "pct": "-9.65%"},
-                {"rank": 3, "code": "00676R", "name": "富邦臺灣加權反1", "pct": "-9.43%"},
-                {"rank": 4, "code": "00664R", "name": "國泰臺灣加權反1", "pct": "-9.19%"},
-                {"rank": 5, "code": "00632R", "name": "元大台灣50反1", "pct": "-9.14%"},
-                {"rank": 6, "code": "6620", "name": "漢達", "pct": "-8.72%"}
-            ]
-        },
-
-        # 8. 風險監控 (Risk Alerts)
-        "risk_events": [
-            {"time": "07/31 23:29", "event": "三大法人合計偏買", "desc": "上市櫃三大法人當日合計為買超，權值與籌碼面可能承壓。", "scope": "台股", "level": "中", "color": "text-yellow-400 border-yellow-500/30"},
-            {"time": "07/31 15:30", "event": "市場廣度偏空", "desc": "上漲家數佔比僅 28.3%，下跌家數明顯較多。", "scope": "台股", "level": "高", "color": "text-rose-400 border-rose-500/30"},
-            {"time": "07/30 15:30", "event": "市場廣度偏空", "desc": "上漲家數佔比僅 17.1%，下跌家數明顯較多。", "scope": "台股", "level": "高", "color": "text-rose-400 border-rose-500/30"}
-        ],
-
-        # 9. 系統設定與資料來源狀態 (Setup Page)
-        "settings": {
-            "auto_sync": "開啟",
-            "market_period": "非交易日",
-            "last_success": "08/01 23:57",
-            "data_sources": [
-                {"dataset": "上市櫃市場摘要", "source": "臺灣證券交易所與櫃買中心", "type": "官方盤後資料", "date": "2026/07/31", "updated": "07/31 23:27", "status": "部分資料可用", "badge": "warning"},
-                {"dataset": "加權指數", "source": "臺灣證券交易所", "type": "官方盤後資料", "date": "2026/07/31", "updated": "08/01 09:04", "status": "同步完成", "badge": "success"},
-                {"dataset": "櫃買指數", "source": "證券櫃檯買賣中心", "type": "官方盤後資料", "date": "2026/07/31", "updated": "07/31 22:23", "status": "同步失敗", "badge": "danger"},
-                {"dataset": "市場廣度", "source": "臺灣證券交易所與櫃買中心", "type": "官方盤後資料", "date": "2026/07/31", "updated": "07/31 23:27", "status": "部分資料可用", "badge": "warning"},
-                {"dataset": "三大法人買賣超", "source": "臺灣證券交易所與櫃買中心", "type": "官方盤後資料", "date": "2026/07/31", "updated": "07/31 22:23", "status": "同步失敗", "badge": "danger"},
-                {"dataset": "法人個股買賣超", "source": "臺灣證券交易所與櫃買中心", "type": "官方盤後資料", "date": "2026/07/31", "updated": "07/31 22:23", "status": "同步完成", "badge": "success"},
-                {"dataset": "產業資金統計", "source": "MOPS+TWSE+TPEx", "type": "官方盤後資料", "date": "2026/07/31", "updated": "07/31 22:23", "status": "同步失敗", "badge": "danger"},
-                {"dataset": "國際市場", "source": "資料供應來源管理模組", "type": "快取資料", "date": "2026/07/31", "updated": "08/01 23:57", "status": "部分資料可用", "badge": "warning"},
-                {"dataset": "台指期夜盤", "source": "尚未設定正式來源", "type": "目前無可用資料", "date": "尚未取得", "updated": "尚未取得", "status": "尚未取得", "badge": "neutral"},
-                {"dataset": "融資融券", "source": "臺灣證券交易所與櫃買中心", "type": "最後成功資料", "date": "2026/07/23", "updated": "07/23 19:25", "status": "最後成功資料", "badge": "warning"},
-                {"dataset": "漲跌停家數", "source": "臺灣證券交易所與櫃買中心", "type": "最後成功資料", "date": "2026/07/22", "updated": "07/23 19:25", "status": "最後成功資料", "badge": "warning"},
-                {"dataset": "近期新高低", "source": "臺灣證券交易所與櫃買中心", "type": "最後成功資料", "date": "2026/07/22", "updated": "07/23 19:25", "status": "最後成功資料", "badge": "warning"},
-                {"dataset": "持股風險", "source": "尚未設定正式來源", "type": "目前無可用資料", "date": "尚未取得", "updated": "尚未取得", "status": "尚未取得", "badge": "neutral"},
-                {"dataset": "市場風險模型", "source": "TW Pulse 分析模型", "type": "官方盤後資料", "date": "2026/07/31", "updated": "07/31 23:29", "status": "部分資料可用", "badge": "warning"}
-            ]
-        }
-    }
-
-    with open("data.json", "w", encoding="utf-8") as f:
-        json.dump(dashboard_data, f, ensure_ascii=False, indent=2)
-
-    print("✅ data.json 包含「設定」頁面之完整資料庫建置成功！")
-
-if __name__ == "__main__":
-    main()
+      - name: Commit and Push Data Updates
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update market data" && git push)
