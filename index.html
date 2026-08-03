@@ -461,7 +461,103 @@
                         </div>
                     `).join('');
                 }
+<!-- 登入彈窗 (Modal) -->
+<div id="login-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden">
+    <div class="card-bg p-8 rounded-2xl w-96 border border-slate-700 shadow-2xl text-center space-y-4">
+        <div class="bg-blue-600 text-white font-black text-xl px-3 py-1.5 rounded-lg inline-block mb-2">TW Pulse</div>
+        <h3 class="text-lg font-bold text-white">請先登入系統</h3>
+        <p class="text-xs text-slate-400">請輸入管理員密碼以存取機構級數據頁面</p>
+        
+        <input type="password" id="login-pass" placeholder="輸入密碼 (預設: admin123)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+        
+        <p id="login-error" class="text-xs text-rose-400 hidden">❌ 密碼錯誤，請重新輸入</p>
+        
+        <button onclick="handleLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-bold transition">
+            登入系統
+        </button>
+    </div>
+</div>
 
+<script>
+    // 1. 檢查登入狀態 (Auth Check)
+    function checkAuth() {
+        const isAuthenticated = localStorage.getItem('tw_pulse_auth');
+        const modal = document.getElementById('login-modal');
+        if (isAuthenticated === 'true') {
+            modal.classList.add('hidden');
+        } else {
+            modal.classList.remove('hidden');
+        }
+    }
+
+    // 2. 真實登入處理 (Login Handler)
+    function handleLogin() {
+        const pass = document.getElementById('login-pass').value;
+        const errorMsg = document.getElementById('login-error');
+        
+        // 預設密碼設為 admin123 (可自行修改)
+        if (pass === 'admin123') {
+            localStorage.setItem('tw_pulse_auth', 'true');
+            errorMsg.classList.add('hidden');
+            checkAuth();
+        } else {
+            errorMsg.classList.remove('hidden');
+        }
+    }
+
+    // 3. 真實登出處理 (Logout Handler)
+    function handleLogout() {
+        if (confirm('確定要登出 TW Pulse 系統嗎？')) {
+            localStorage.removeItem('tw_pulse_auth'); // 清除登入 Token
+            checkAuth(); // 重新觸發認證檢查，鎖定畫面
+        }
+    }
+
+    // 頁面初始化執行認證檢查
+    checkAuth();
+
+    // --- 原有的分頁與資料載入邏輯 ---
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        const activeBtn = document.getElementById('btn-' + tabId);
+        if(activeBtn) activeBtn.classList.add('active');
+    }
+
+    fetch('./data.json')
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('last-update-time').innerText = '更新 ' + data.last_updated;
+
+            if(data.settings) {
+                document.getElementById('card-last-success').innerText = data.settings.last_success;
+                const badgeStyles = {
+                    success: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/50',
+                    warning: 'bg-amber-950/80 text-amber-400 border-amber-800/50',
+                    danger: 'bg-rose-950/80 text-rose-400 border-rose-800/50',
+                    neutral: 'bg-slate-800 text-slate-400 border-slate-700'
+                };
+
+                document.getElementById('settings-table-body').innerHTML = data.settings.data_sources.map(s => `
+                    <tr class="hover:bg-slate-900/40 transition">
+                        <td class="p-3 font-bold text-slate-200">${s.dataset}</td>
+                        <td class="p-3 text-slate-400">${s.source}</td>
+                        <td class="p-3 text-slate-400">${s.type}</td>
+                        <td class="p-3 text-slate-300 font-mono">${s.date}</td>
+                        <td class="p-3 text-slate-300 font-mono">${s.updated}</td>
+                        <td class="p-3 text-right">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold border ${badgeStyles[s.badge]}">
+                                ${s.status}
+                            </span>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        })
+        .catch(err => console.error(err));
+</script>
                 // 7. 盤後數據
                 if(data.after_hours) {
                     document.getElementById('after-gainers-list').innerHTML = data.after_hours.gainers.map(a => `
