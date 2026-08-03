@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-08-03 06:06:33",
+  "last_updated": "2026-08-03 06:10:37",
   "status": "市場資料已連線 (TWSE API)",
   "data_date": "2026/08/03",
   "index_trends": {
@@ -37,14 +37,14 @@
   "settings": {
     "auto_sync": "開啟",
     "market_period": "盤後即時 API",
-    "last_success": "2026-08-03 06:06:33",
+    "last_success": "2026-08-03 06:10:37",
     "data_sources": [
       {
         "dataset": "加權指數 (TWSE)",
         "source": "臺灣證券交易所 OpenAPI",
         "type": "官方盤後 API",
         "date": "2026/08/03",
-        "updated": "2026-08-03 06:06:33",
+        "updated": "2026-08-03 06:10:37",
         "status": "同步完成",
         "badge": "success"
       },
@@ -53,7 +53,7 @@
         "source": "臺灣證券交易所 BFI82U",
         "type": "官方盤後 API",
         "date": "2026/08/03",
-        "updated": "2026-08-03 06:06:33",
+        "updated": "2026-08-03 06:10:37",
         "status": "同步完成",
         "badge": "success"
       },
@@ -62,7 +62,7 @@
         "source": "臺灣證券交易所 MI_INDEX",
         "type": "官方盤後 API",
         "date": "2026/08/03",
-        "updated": "2026-08-03 06:06:33",
+        "updated": "2026-08-03 06:10:37",
         "status": "同步完成",
         "badge": "success"
       }
